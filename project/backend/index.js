@@ -1,7 +1,11 @@
 const express = require('express');
 const cors = require('cors');
+const bcrypt = require('bcryptjs');
+const nodemailer = require('nodemailer');
 const db = require('./db');
 const jwt = require('jsonwebtoken');
+const multer = require('multer');
+const path = require('path');
 require('dotenv').config();
 
 const app = express();
@@ -9,6 +13,104 @@ const PORT = process.env.PORT || 5000;
 
 app.use(cors());
 app.use(express.json());
+
+// Configuration de multer pour l'upload d'images
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, path.join(__dirname, '../client/public/uploads/avatars'));
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, uniqueSuffix + path.extname(file.originalname));
+  },
+});
+
+const upload = multer({ storage });
+
+const transporter = nodemailer.createTransport({
+  service: 'gmail', // ou autre
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+});
+
+app.post('/api/upload/avatar', upload.single('avatar'), (req, res) => {
+  if (!req.file) return res.status(400).json({ error: 'Aucun fichier envoyé' });
+  // Retourne l’URL publique de l’image
+  res.json({ url: `/uploads/avatars/${req.file.filename}` });
+});
+
+// Pour servir les fichiers statiques
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+
+const portfolioStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, path.join(__dirname, '../client/public/uploads/portfolio'));
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, uniqueSuffix + path.extname(file.originalname));
+  },
+});
+const uploadPortfolio = multer({ storage: portfolioStorage });
+
+// Upload d'image de projet portfolio
+app.post('/api/upload/portfolio', uploadPortfolio.single('image'), (req, res) => {
+  if (!req.file) return res.status(400).json({ error: 'Aucun fichier envoyé' });
+  res.json({ url: `/uploads/portfolio/${req.file.filename}` });
+});
+
+// Ajouter un projet ou un lien au portfolio
+app.post('/api/portfolio', (req, res) => {
+  const { freelance_id, title, description, image, url } = req.body;
+  const sql = `
+    INSERT INTO portfolio (freelance_id, title, description, image, url)
+    VALUES (?, ?, ?, ?, ?)
+  `;
+  db.query(sql, [freelance_id, title, description, image, url], (err, result) => {
+    if (err) {
+      console.error('Erreur lors de l\'ajout au portfolio :', err);
+      return res.status(500).json({ error: 'Erreur serveur' });
+    }
+    res.status(201).json({ message: 'Projet ajouté au portfolio', id: result.insertId });
+  });
+});
+
+// Récupérer le portfolio d'un freelance
+app.get('/api/portfolio/:freelanceId', (req, res) => {
+  const { freelanceId } = req.params;
+  const sql = `SELECT * FROM portfolio WHERE freelance_id = ? ORDER BY created_at DESC`;
+  db.query(sql, [freelanceId], (err, results) => {
+    if (err) {
+      console.error('Erreur lors de la récupération du portfolio :', err);
+      return res.status(500).json({ error: 'Erreur serveur' });
+    }
+    res.json(results);
+  });
+});
+
+// Supprimer un projet du portfolio
+app.delete('/api/portfolio/:id', (req, res) => {
+  const { id } = req.params;
+  const sql = `DELETE FROM portfolio WHERE id = ?`;
+  db.query(sql, [id], (err, result) => {
+    if (err) {
+      console.error('Erreur lors de la suppression du projet :', err);
+      return res.status(500).json({ error: 'Erreur serveur' });
+    }
+    res.json({ message: 'Projet supprimé' });
+  });
+});
+
+app.get('/api/portfolio/item/:id', (req, res) => {
+  const { id } = req.params;
+  db.query('SELECT * FROM portfolio WHERE id = ?', [id], (err, results) => {
+    if (err || results.length === 0) return res.status(404).json({ error: 'Projet non trouvé' });
+    res.json(results[0]);
+  });
+});
 
 // Exemple de route GET
 app.get('/api/utilisateurs', (req, res) => {
@@ -104,8 +206,8 @@ app.post('/api/login', (req, res) => {
   const { email, password } = req.body;
 
   // Vérifier si l'utilisateur existe dans la base de données
-  const sql = `SELECT id, username, email, role FROM users WHERE email = ? AND password = ?`;
-  db.query(sql, [email, password], (err, results) => {
+  const sql = `SELECT id, username, email, password, role FROM users WHERE email = ?`;
+  db.query(sql, [email], async (err, results) => {
     if (err) {
       console.error('Erreur lors de la vérification de l\'utilisateur :', err);
       return res.status(500).json({ error: 'Erreur interne du serveur' });
@@ -117,10 +219,17 @@ app.post('/api/login', (req, res) => {
 
     const user = results[0];
 
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ error: 'Email ou mot de passe incorrect' });
+    }
+
     // Générer un token JWT
     const token = jwt.sign({ id: user.id, username: user.username, role: user.role }, process.env.JWT_SECRET, {
       expiresIn: '1h',
     });
+
+    delete user.password;
 
     res.status(200).json({
       message: 'Connexion réussie',
@@ -131,15 +240,18 @@ app.post('/api/login', (req, res) => {
 });
 
 // Route POST pour créer un utilisateur
-app.post('/api/users', (req, res) => {
+app.post('/api/users', async (req, res) => {
   const { username, email, password, role } = req.body;
+
+  const salt = await bcrypt.genSalt(10);
+  const hashedPassword = await bcrypt.hash(password, salt);
 
   const sql = `
     INSERT INTO users (username, email, password, role)
     VALUES (?, ?, ?, ?)
   `;
 
-  db.query(sql, [username, email, password, role], (err, result) => {
+  db.query(sql, [username, email, hashedPassword, role], (err, result) => {
     if (err) {
       console.error('Erreur lors de l\'insertion dans la table users :', err);
       return res.status(500).json({ error: 'Erreur lors de la création de l\'utilisateur' });
@@ -434,7 +546,25 @@ app.post('/api/messages', (req, res) => {
       `;
       db.query(sqlMsg, [conversationId, senderId, subject, content], (err, result) => {
         if (err) return res.status(500).json({ error: 'Erreur serveur' });
-        res.status(201).json({ success: true, conversationId, messageId: result.insertId });
+
+        // ENVOI EMAIL AU RECEIVER
+        const sqlUser = `SELECT email FROM users WHERE id = ? LIMIT 1`;
+        db.query(sqlUser, [receiverId], (err2, userResults) => {
+          if (!err2 && userResults.length > 0) {
+            const recipientEmail = userResults[0].email;
+            transporter.sendMail({
+              from: process.env.EMAIL_USER,
+              to: recipientEmail,
+              subject: 'Nouveau message reçu',
+              text: `Vous avez reçu un nouveau message sur Bimply, \n\nSujet : ${subject}`,
+            }, (mailErr, info) => {
+              if (mailErr) {
+                console.error('Erreur lors de l\'envoi de l\'email :', mailErr);
+              }
+            });
+          }
+          res.status(201).json({ success: true, conversationId, messageId: result.insertId });
+        });
       });
     }
   });
@@ -460,6 +590,8 @@ app.post('/api/messages/:conversationId', (req, res) => {
   const { conversationId } = req.params;
   const { senderId, content } = req.body;
   console.log('POST /api/messages/:conversationId', { conversationId, senderId, content });
+
+  // 1. Insérer le message
   const sql = `
     INSERT INTO messages (conversation_id, sender_id, content)
     VALUES (?, ?, ?)
@@ -469,12 +601,55 @@ app.post('/api/messages/:conversationId', (req, res) => {
       console.error('Erreur lors de l\'envoi du message :', err);
       return res.status(500).json({ error: 'Erreur serveur' });
     }
-    res.status(201).json({
-      id: result.insertId,
-      conversation_id: conversationId,
-      senderId,
-      content,
-      created_at: new Date()
+
+    // 2. Récupérer l'id du destinataire dans la conversation
+    const sqlConv = `
+      SELECT user1_id, user2_id FROM conversations WHERE id = ?
+    `;
+    db.query(sqlConv, [conversationId], (err2, convResults) => {
+      if (err2 || convResults.length === 0) {
+        console.error('Erreur lors de la récupération de la conversation :', err2);
+        // On retourne quand même le message même si l'email échoue
+        return res.status(201).json({
+          id: result.insertId,
+          conversation_id: conversationId,
+          senderId,
+          content,
+          created_at: new Date()
+        });
+      }
+
+      const conv = convResults[0];
+      // Le destinataire est l'autre utilisateur de la conversation
+      const recipientId = (conv.user1_id === senderId) ? conv.user2_id : conv.user1_id;
+
+      // 3. Récupérer l'email du destinataire
+      const sqlUser = `SELECT email FROM users WHERE id = ? LIMIT 1`;
+      db.query(sqlUser, [recipientId], (err3, userResults) => {
+        if (!err3 && userResults.length > 0) {
+          const recipientEmail = userResults[0].email;
+
+          // 4. Envoyer l'email de notification
+          transporter.sendMail({
+            from: process.env.EMAIL_USER,
+            to: recipientEmail,
+            subject: 'Nouveau message reçu',
+            text: `Vous avez reçu un nouveau message sur Bimply, \n\nSujet : ${subject}`,
+          }, (mailErr, info) => {
+            if (mailErr) {
+              console.error('Erreur lors de l\'envoi de l\'email :', mailErr);
+            }
+          });
+        }
+        // On retourne la réponse même si l'email échoue
+        res.status(201).json({
+          id: result.insertId,
+          conversation_id: conversationId,
+          senderId,
+          content,
+          created_at: new Date()
+        });
+      });
     });
   });
 });
