@@ -502,10 +502,35 @@ app.post('/api/applications', (req, res) => {
   `;
   db.query(sql, [jobId, freelancerId, coverLetter, proposedRate], (err, result) => {
     if (err) {
-      console.error('Erreur lors de l\'insertion de la candidature :', err);
       return res.status(500).json({ error: 'Erreur serveur' });
     }
-    res.status(201).json({ success: true, id: result.insertId });
+
+    // 2. Récupérer l'email de l'entreprise liée à l'appel d'offre
+    const sqlEntrepriseUser = `
+      SELECT u.email, a.titre
+      FROM appel_doffre a
+      JOIN entreprises e ON a.entreprise_id = e.id
+      JOIN users u ON e.user_id = u.id
+      WHERE a.id = ?
+      LIMIT 1
+    `;
+
+    db.query(sqlEntrepriseUser, [jobId], (err2, userResults) => {
+      if (!err2 && userResults.length > 0) {
+        const recipientEmail = userResults[0].email;
+        transporter.sendMail({
+          from: process.env.EMAIL_USER,
+          to: recipientEmail,
+          subject: 'Nouvelle candidature reçue',
+          text: `Vous avez reçu une nouvelle candidature pour l'appel d'offre : ${userResults[0].titre}`,
+        }, (mailErr, info) => {
+          if (mailErr) {
+            console.error('Erreur lors de l\'envoi de l\'email :', mailErr);
+          }
+        });
+      }
+      res.status(201).json({ success: true, id: result.insertId });
+    });
   });
 });
 
@@ -572,16 +597,35 @@ app.post('/api/messages', (req, res) => {
 
 app.post('/api/conversations', (req, res) => {
   const { user1_id, user2_id, job_id, title } = req.body;
-  const sql = `
-    INSERT INTO conversations (user1_id, user2_id, job_id, title)
-    VALUES (?, ?, ?, ?)
+
+  // 1. Vérifier si la conversation existe déjà
+  const sqlFind = `
+    SELECT id FROM conversations
+    WHERE ((user1_id = ? AND user2_id = ?) OR (user1_id = ? AND user2_id = ?))
+      AND job_id = ?
+    LIMIT 1
   `;
-  db.query(sql, [user1_id, user2_id, job_id || null, title || null], (err, result) => {
+  db.query(sqlFind, [user1_id, user2_id, user2_id, user1_id, job_id], (err, results) => {
     if (err) {
-      console.error('Erreur lors de la création de la conversation :', err);
+      console.error('Erreur lors de la recherche de la conversation :', err);
       return res.status(500).json({ error: 'Erreur serveur' });
     }
-    res.status(201).json({ id: result.insertId, user1_id, user2_id, job_id, title });
+    if (results.length > 0) {
+      // Conversation déjà existante
+      return res.status(200).json({ id: results[0].id, user1_id, user2_id, job_id, title });
+    }
+    // 2. Sinon, créer la conversation
+    const sqlCreate = `
+      INSERT INTO conversations (user1_id, user2_id, job_id, title)
+      VALUES (?, ?, ?, ?)
+    `;
+    db.query(sqlCreate, [user1_id, user2_id, job_id || null, title || null], (err2, result) => {
+      if (err2) {
+        console.error('Erreur lors de la création de la conversation :', err2);
+        return res.status(500).json({ error: 'Erreur serveur' });
+      }
+      res.status(201).json({ id: result.insertId, user1_id, user2_id, job_id, title });
+    });
   });
 });
 
@@ -634,7 +678,7 @@ app.post('/api/messages/:conversationId', (req, res) => {
             from: process.env.EMAIL_USER,
             to: recipientEmail,
             subject: 'Nouveau message reçu',
-            text: `Vous avez reçu un nouveau message sur Bimply, \n\nSujet : ${subject}`,
+            text: `Vous avez reçu un nouveau message sur Bimply`,
           }, (mailErr, info) => {
             if (mailErr) {
               console.error('Erreur lors de l\'envoi de l\'email :', mailErr);
