@@ -25,7 +25,32 @@ const storage = multer.diskStorage({
   },
 });
 
+const logoStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, '../client/public/uploads/logos');
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, 'logo-' + uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
 const upload = multer({ storage });
+
+const uploadLogo = multer({ 
+  storage: logoStorage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB max
+  fileFilter: (req, file, cb) => {
+    const filetypes = /jpeg|jpg|png|gif/;
+    const mimetype = filetypes.test(file.mimetype);
+    const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+
+    if (mimetype && extname) {
+      return cb(null, true);
+    }
+    cb(new Error('Seules les images sont autorisées'));
+  }
+});
 
 const transporter = nodemailer.createTransport({
   service: 'gmail', // ou autre
@@ -43,6 +68,18 @@ app.post('/api/upload/avatar', upload.single('avatar'), (req, res) => {
 
 // Pour servir les fichiers statiques
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+
+
+app.post('/api/upload/logo', uploadLogo.single('logo'), (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ error: 'Aucun fichier envoyé' });
+  }
+  const logoUrl = `/uploads/logos/${req.file.filename}`;
+  res.json({ url: logoUrl });
+});
+
+app.use('/uploads', express.static('uploads'));
 
 
 const portfolioStorage = multer.diskStorage({
@@ -555,10 +592,10 @@ app.post('/api/messages', (req, res) => {
     } else {
       // Créer la conversation
       const sqlCreate = `
-        INSERT INTO conversations (user1_id, user2_id)
-        VALUES (?, ?)
+        INSERT INTO conversations (user1_id, user2_id, title)
+        VALUES (?, ?, ?)
       `;
-      db.query(sqlCreate, [senderId, receiverId], (err, result) => {
+      db.query(sqlCreate, [senderId, receiverId, subject], (err, result) => {
         if (err) return res.status(500).json({ error: 'Erreur serveur' });
         conversationId = result.insertId;
         insertMessage(conversationId);
@@ -700,19 +737,48 @@ app.post('/api/messages/:conversationId', (req, res) => {
 
 // Lister les conversations d'un utilisateur
 app.get('/api/conversations/:userId', (req, res) => {
-  const { userId } = req.params;
+  const userId = req.params.userId;
   const sql = `
-    SELECT c.*, 
-      u1.username AS user1_name, 
-      u2.username AS user2_name
+    SELECT 
+      c.*,
+      CASE 
+        WHEN c.user1_id = ? THEN u2.username 
+        ELSE u1.username 
+      END AS other_username,
+      CASE 
+        WHEN c.user1_id = ? THEN (
+          CASE 
+            WHEN u2.role = 'freelance' THEN f2.avatar
+            WHEN u2.role = 'entreprise' THEN e2.logo
+          END
+        )
+        ELSE (
+          CASE 
+            WHEN u1.role = 'freelance' THEN f1.avatar
+            WHEN u1.role = 'entreprise' THEN e1.logo
+          END
+        )
+      END AS other_avatar,
+      CASE 
+        WHEN c.user1_id = ? THEN u2.role
+        ELSE u1.role
+      END AS other_role
     FROM conversations c
     JOIN users u1 ON c.user1_id = u1.id
     JOIN users u2 ON c.user2_id = u2.id
+    LEFT JOIN freelances f1 ON u1.id = f1.user_id
+    LEFT JOIN freelances f2 ON u2.id = f2.user_id
+    LEFT JOIN entreprises e1 ON u1.id = e1.user_id
+    LEFT JOIN entreprises e2 ON u2.id = e2.user_id
     WHERE c.user1_id = ? OR c.user2_id = ?
-    ORDER BY c.id DESC
+    ORDER BY c.created_at DESC
   `;
-  db.query(sql, [userId, userId], (err, results) => {
-    if (err) return res.status(500).json({ error: 'Erreur serveur' });
+  
+  db.query(sql, [userId, userId, userId, userId, userId], (err, results) => {
+    if (err) {
+      console.error('Erreur lors de la récupération des conversations:', err);
+      return res.status(500).json({ error: 'Erreur serveur' });
+    }
     res.json(results);
   });
 });
