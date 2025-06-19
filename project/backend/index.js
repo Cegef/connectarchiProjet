@@ -6,6 +6,7 @@ const db = require('./db');
 const jwt = require('jsonwebtoken');
 const multer = require('multer');
 const path = require('path');
+const crypto = require('crypto');
 require('dotenv').config();
 
 const app = express();
@@ -276,6 +277,81 @@ app.post('/api/login', (req, res) => {
   });
 });
 
+app.post('/api/auth/forgot-password', (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ error: "Email requis" });
+
+  // Vérifier si l'utilisateur existe
+  db.query('SELECT id, username FROM users WHERE email = ?', [email], (err, results) => {
+    if (err) return res.status(500).json({ error: "Erreur serveur" });
+    if (!results.length) {
+      // Pour la sécurité, on répond toujours OK même si l'email n'existe pas
+      return res.json({ message: "Si cet email existe, un lien de réinitialisation a été envoyé." });
+    }
+
+    const user = results[0];
+    // Générer un token unique
+    const token = crypto.randomBytes(32).toString('hex');
+    const expire = new Date(Date.now() + 1000 * 60 * 60); // 1h
+
+    // Stocker le token et l'expiration dans la base
+    db.query(
+      'UPDATE users SET reset_token = ?, reset_token_expire = ? WHERE id = ?',
+      [token, expire, user.id],
+      (err2) => {
+        if (err2) return res.status(500).json({ error: "Erreur serveur" });
+
+        // Construire le lien de reset (à adapter selon ton frontend)
+        const resetLink = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/reset-password?token=${token}`;
+
+        // Envoyer l'email
+        transporter.sendMail({
+          from: process.env.EMAIL_USER,
+          to: email,
+          subject: 'Réinitialisation de votre mot de passe',
+          text: `Bonjour ${user.username},\n\nCliquez sur ce lien pour réinitialiser votre mot de passe :\n${resetLink}\n\nCe lien est valable 1 heure.`,
+        }, (mailErr) => {
+          if (mailErr) {
+            console.error('Erreur lors de l\'envoi du mail de reset :', mailErr);
+            // On répond OK pour ne pas révéler si l'email existe ou non
+          }
+          return res.json({ message: "Si cet email existe, un lien de réinitialisation a été envoyé." });
+        });
+      }
+    );
+  });
+});
+
+app.post('/api/auth/reset-password', async (req, res) => {
+  const { token, password } = req.body;
+  if (!token || !password) {
+    return res.status(400).json({ error: "Token et mot de passe requis" });
+  }
+
+  // Vérifier le token et son expiration
+  const sql = `SELECT id FROM users WHERE reset_token = ? AND reset_token_expire > NOW() LIMIT 1`;
+  db.query(sql, [token], async (err, results) => {
+    if (err) return res.status(500).json({ error: "Erreur serveur" });
+    if (!results.length) {
+      return res.status(400).json({ error: "Lien invalide ou expiré" });
+    }
+    const userId = results[0].id;
+
+    // Hasher le nouveau mot de passe
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    // Mettre à jour le mot de passe et supprimer le token
+    const sqlUpdate = `
+      UPDATE users SET password = ?, reset_token = NULL, reset_token_expire = NULL WHERE id = ?
+    `;
+    db.query(sqlUpdate, [hashedPassword, userId], (err2) => {
+      if (err2) return res.status(500).json({ error: "Erreur serveur" });
+      res.json({ message: "Mot de passe réinitialisé avec succès" });
+    });
+  });
+});
+
 // Route POST pour créer un utilisateur
 app.post('/api/users', async (req, res) => {
   const { username, email, password, role } = req.body;
@@ -431,19 +507,19 @@ app.get('/api/companies/by-user/:userId', (req, res) => {
 app.put('/api/freelancers/by-user/:userId', (req, res) => {
   const { userId } = req.params;
   const {
-    title, specialization, location, hourlyRate, description,
-    skills, availability, experienceYears, avatar, portfolio
+    title, specialization, location, hourly_rate, description,
+    skills, availability, experience_years, avatar, portfolio
   } = req.body;
 
   const sql = `
     UPDATE freelances SET
-      title = ?, specialization = ?, location = ?, hourlyRate = ?, description = ?,
-      skills = ?, availability = ?, experienceYears = ?, avatar = ?, portfolio = ?
+      title = ?, specialization = ?, location = ?, hourly_rate = ?, description = ?,
+      skills = ?, availability = ?, experience_years = ?, avatar = ?, portfolio = ?
     WHERE user_id = ?
   `;
   db.query(sql, [
-    title, specialization, location, hourlyRate, description,
-    JSON.stringify(skills), availability, experienceYears, avatar, JSON.stringify(portfolio),
+    title, specialization, location, hourly_rate, description,
+    JSON.stringify(skills), availability, experience_years, avatar, JSON.stringify(portfolio),
     userId
   ], (err, result) => {
     if (err) {
@@ -478,6 +554,18 @@ app.put('/api/companies/by-user/:userId', (req, res) => {
       return res.status(500).json({ error: 'Erreur serveur' });
     }
     res.json({ message: 'Entreprise mise à jour' });
+  });
+});
+
+app.get('/api/portfolio/by-freelance/:freelanceId', (req, res) => {
+  const { freelanceId } = req.params;
+  const sql = `SELECT * FROM portfolio WHERE freelance_id = ? ORDER BY created_at DESC`;
+  db.query(sql, [freelanceId], (err, results) => {
+    if (err) {
+      console.error('Erreur lors de la récupération du portfolio :', err);
+      return res.status(500).json({ error: 'Erreur serveur' });
+    }
+    res.json(results);
   });
 });
 

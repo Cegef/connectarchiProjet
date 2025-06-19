@@ -10,6 +10,10 @@ export default function UserProfile() {
   const [companyData, setCompanyData] = useState(null);
   const [applications, setApplications] = useState([]);
   const [conversations, setConversations] = useState([]);
+  const [portfolioList, setPortfolioList] = useState([]);
+  const [showPortfolioForm, setShowPortfolioForm] = useState(false);
+  const [newPortfolio, setNewPortfolio] = useState({ title: '', description: '', url: '', image: '' });
+  const [portfolioError, setPortfolioError] = useState('');
   const [activeTab, setActiveTab] = useState('profile');
   const [formData, setFormData] = useState({
     title: '',
@@ -68,11 +72,11 @@ export default function UserProfile() {
             title: freelancer.title || '',
             specialization: freelancer.specialization || '',
             location: freelancer.location || '',
-            hourlyRate: freelancer.hourlyRate?.toString() || '',
+            hourly_rate: freelancer.hourly_rate?.toString() || '',
             description: freelancer.description || '',
             skills: skillsArray.join(', '),
             availability: freelancer.availability || 'Disponible',
-            experienceYears: freelancer.experienceYears?.toString() || '0',
+            experience_years: freelancer.experience_years?.toString() || '0',
             avatar: freelancer.avatar || '',
             portfolio: Array.isArray(freelancer.portfolio) ? [...freelancer.portfolio] : [],
           }));
@@ -126,15 +130,14 @@ export default function UserProfile() {
     e.preventDefault();
     if (user?.role === 'freelance' && freelancerData) {
       const updatedFreelancer = {
-        ...freelancerData,
         title: formData.title,
         specialization: formData.specialization,
         location: formData.location,
-        hourlyRate: Number(formData.hourlyRate),
+        hourly_rate: Number(formData.hourlyRate),
         description: formData.description,
         skills: formData.skills.split(',').map((s) => s.trim()),
         availability: formData.availability,
-        experienceYears: Number(formData.experienceYears),
+        experience_years: Number(formData.experienceYears),
         avatar: formData.avatar,
         portfolio: formData.portfolio,
       };
@@ -183,6 +186,17 @@ export default function UserProfile() {
         .catch((err) => console.error('Erreur lors de la mise à jour des données entreprise :', err));
     }
   };
+
+  useEffect(() => {
+    if (user?.role === 'freelance' && freelancerData?.id) {
+      fetch(`${apiUrl}/api/portfolio/by-freelance/${freelancerData.id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+        .then(res => res.json())
+        .then(data => setPortfolioList(Array.isArray(data) ? data : []))
+        .catch(() => setPortfolioList([]));
+    }
+  }, [user, token, apiUrl, freelancerData]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -374,15 +388,44 @@ export default function UserProfile() {
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Logo (URL)</label>
-          <input
-            type="text"
-            name="logo"
-            value={formData.logo}
-            onChange={handleChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-500"
-            placeholder="ex: https://..."
-          />
+          <label className="block text-sm font-medium text-gray-700 mb-1">Logo</label>
+          <div className="flex items-center space-x-4">
+            <div className="w-20 h-20 bg-gray-100 rounded-lg flex items-center justify-center border-2 border-dashed border-gray-300 overflow-hidden">
+              {formData.logo ? (
+                <img
+                  src={formData.logo}
+                  alt="Logo entreprise"
+                  className="w-full h-full object-contain"
+                />
+              ) : (
+                <span className="text-gray-400">Aucun logo</span>
+              )}
+            </div>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                const formDataFile = new FormData();
+                formDataFile.append('logo', file);
+                try {
+                  const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+                  const res = await fetch(`${apiUrl}/api/upload/logo`, {
+                    method: 'POST',
+                    body: formDataFile,
+                  });
+                  const data = await res.json();
+                  if (data.url) {
+                    setFormData(prev => ({ ...prev, logo: data.url }));
+                  }
+                } catch (error) {
+                  console.error('Erreur lors de l\'upload du logo:', error);
+                }
+              }}
+              className="w-full text-sm text-gray-500"
+            />
+          </div>
         </div>
         <div className="md:col-span-2">
           <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
@@ -434,37 +477,150 @@ export default function UserProfile() {
         </div>
 
         {/* Portfolio */}
-        {Array.isArray(freelancerData.portfolio) && freelancerData.portfolio.length > 0 && (
+        {user?.role === 'freelance' && user.id === freelancerData?.user_id && (
           <div className="mt-6">
-            <h3 className="text-lg font-semibold mb-2">Portfolio</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {freelancerData.portfolio.map((item, idx) => (
-                <div key={idx} className="border rounded-lg p-4 bg-gray-50">
-                  {item.url ? (
-                    <a
-                      href={item.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-indigo-600 underline break-all"
-                    >
-                      {item.url}
-                    </a>
-                  ) : (
-                    <>
-                      <h4 className="font-semibold">{item.title}</h4>
-                      {item.image && (
-                        <img
-                          src={item.image}
-                          alt={item.title}
-                          className="w-full h-40 object-cover rounded-lg my-2"
-                        />
+            {/* Affichage des portfolios depuis la table portfolio */}
+            {Array.isArray(portfolioList) && portfolioList.length > 0 && (
+              <div className="mb-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                {portfolioList.map((item, idx) => (
+                  <div
+                    key={item.id || idx}
+                    className="rounded-lg overflow-hidden shadow-md cursor-pointer hover:shadow-lg transition bg-white"
+                    onClick={() => item.id && navigate(`/portfolio/item/${item.id}`)}
+                    title={item.title || item.url || 'Projet'}
+                  >
+                    {item.image && (
+                      <img
+                        src={item.image}
+                        alt={item.title || `Projet ${idx + 1}`}
+                        className="w-full h-48 object-cover"
+                      />
+                    )}
+                    <div className="p-4">
+                      {item.url && !item.image ? (
+                        <a
+                          href={item.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-indigo-600 underline break-all font-semibold mb-2"
+                        >
+                          {item.url}
+                        </a>
+                      ) : (
+                        <>
+                          <div className="font-bold text-lg mb-1">{item.title}</div>
+                          <div className="text-gray-600 text-sm mb-2">
+                            {item.description && item.description.length > 120
+                              ? item.description.slice(0, 120) + '…'
+                              : item.description}
+                          </div>
+                        </>
                       )}
-                      <p className="text-gray-600">{item.description}</p>
-                    </>
-                  )}
-                </div>
-              ))}
-            </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Bouton d'ajout */}
+            <button
+              type="button"
+              className="mb-4 px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
+              onClick={() => setShowPortfolioForm(v => !v)}
+            >
+              {showPortfolioForm ? "Annuler" : "Ajouter un projet"}
+            </button>
+            {showPortfolioForm && (
+              <div className="border rounded-lg p-4 bg-white shadow mb-2">
+                <input
+                  type="text"
+                  value={newPortfolio.title}
+                  onChange={e => setNewPortfolio({ ...newPortfolio, title: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md mb-2"
+                  placeholder="Titre du projet"
+                />
+                <textarea
+                  value={newPortfolio.description}
+                  onChange={e => setNewPortfolio({ ...newPortfolio, description: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md mb-2"
+                  placeholder="Description du projet"
+                />
+                <input
+                  type="text"
+                  value={newPortfolio.url}
+                  onChange={e => setNewPortfolio({ ...newPortfolio, url: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md mb-2"
+                  placeholder="Lien du projet (optionnel)"
+                />
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={async (e) => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    const formDataFile = new FormData();
+                    formDataFile.append('image', file);
+                    const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+                    const res = await fetch(`${apiUrl}/api/upload/portfolio`, {
+                      method: 'POST',
+                      body: formDataFile,
+                    });
+                    const data = await res.json();
+                    if (data.url) {
+                      setNewPortfolio(p => ({ ...p, image: data.url }));
+                    }
+                  }}
+                  className="w-full text-sm text-gray-500 mb-2"
+                />
+                {newPortfolio.image && (
+                  <img src={newPortfolio.image} alt="Aperçu" className="w-32 h-32 object-cover mb-2" />
+                )}
+                {portfolioError && <div className="text-red-500 mb-2">{portfolioError}</div>}
+                <button
+                  type="button"
+                  className="mt-2 px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
+                  onClick={async () => {
+                    if (!newPortfolio.title && !newPortfolio.url) {
+                      setPortfolioError("Titre ou lien requis");
+                      return;
+                    }
+                    setPortfolioError('');
+                    // Ajout dans la table portfolio
+                    try {
+                      const res = await fetch(`${apiUrl}/api/portfolio`, {
+                        method: 'POST',
+                        headers: {
+                          'Content-Type': 'application/json',
+                          Authorization: `Bearer ${token}`,
+                        },
+                        body: JSON.stringify({
+                          freelance_id: freelancerData.id,
+                          title: newPortfolio.title || null,
+                          description: newPortfolio.description || null,
+                          image: newPortfolio.image || null,
+                          url: newPortfolio.url || null,
+                        }),
+                      });
+                      if (res.ok) {
+                        // Recharge la liste des portfolios
+                        const updated = await fetch(`${apiUrl}/api/portfolio/by-freelance/${freelancerData.id}`, {
+                          headers: { Authorization: `Bearer ${token}` },
+                        }).then(r => r.json());
+                        setPortfolioList(Array.isArray(updated) ? updated : []);
+                        setNewPortfolio({ title: '', description: '', url: '', image: '' });
+                        setShowPortfolioForm(false);
+                      } else {
+                        setPortfolioError("Erreur lors de l'ajout du projet");
+                      }
+                    } catch (err) {
+                      setPortfolioError("Erreur lors de l'ajout du projet");
+                    }
+                  }}
+                >
+                  Ajouter
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -475,7 +631,7 @@ export default function UserProfile() {
       <div className="bg-white rounded-lg shadow-md p-6">
         <div className="mb-4 flex items-center">
           <img
-            src={companyData.logo || 'https://via.placeholder.com/100'}
+            src={companyData.logo || 'uploads/default_entreprise_avatar.png'}
             alt={companyData.name}
             className="w-20 h-20 rounded mr-4 object-cover"
           />
@@ -485,8 +641,12 @@ export default function UserProfile() {
           </div>
         </div>
         <div className="mb-2"><b>SIRET :</b> {companyData.siret}</div>
-        <div className="mb-2"><b>TVA :</b> {companyData.vatNumber}</div>
-        <div className="mb-2"><b>Ville :</b> {companyData.registrationCity}</div>
+        <div className="mb-2">
+          <b>TVA :</b> {companyData.vatNumber || companyData.vat_number || "Non renseigné"}
+        </div>
+        <div className="mb-2">
+          <b>Ville :</b> {companyData.registrationCity || companyData.registration_city || "Non renseigné"}
+        </div>
         <div className="mb-2"><b>Adresse :</b> {companyData.address}</div>
         <div className="mb-2"><b>Site web :</b> {companyData.website && (
           <a href={companyData.website} target="_blank" rel="noopener noreferrer" className="text-indigo-600 underline">{companyData.website}</a>

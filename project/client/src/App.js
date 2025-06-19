@@ -12,6 +12,8 @@ import FreelanceProfileSetup from './pages/FreelanceProfileSetup';
 import CompanyProfileSetup from './pages/CompanyProfileSetup';
 import UserProfile from './pages/UserProfile';
 import ChooseType from './pages/Inscription';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 import Accueil from './pages/Accueil';
 import Footer from './components/Footer';
 
@@ -20,7 +22,6 @@ function App() {
     <AuthProvider>
       <Router>
         <Navbar />
-        {/* Routes */}
         <Routes>
           <Route path="/" element={<Accueil />} />
           <Route path="/freelancers" element={<FreelanceList />} />
@@ -33,6 +34,8 @@ function App() {
           <Route path="/profile" element={<UserProfile />} />
           <Route path="/chat/:conversationId" element={<ChatPage />} />
           <Route path="/portfolio/item/:id" element={<PortfolioItem />} />
+          <Route path="/mot-de-passe-oublie" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
         </Routes>
         <Footer />
       </Router>

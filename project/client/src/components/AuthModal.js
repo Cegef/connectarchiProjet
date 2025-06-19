@@ -33,6 +33,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
 
   const handleRedirectToRegister = () => {
     navigate('/inscription'); // Redirige directement vers la page Inscription.js
+    onClose();
   };
 
   return (
@@ -81,10 +82,18 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
             Se connecter
           </button>
         </form>
-
+        <div className="mt-1">
+          <button
+            type="button"
+            onClick={() => { navigate('/mot-de-passe-oublie'); onClose(); }}
+            className="text-xs text-indigo-600 hover:underline"
+          >
+            Mot de passe oublié ?
+          </button>
+        </div>
         <button
           onClick={handleRedirectToRegister}
-          className="mt-4 text-sm text-indigo-600 hover:text-indigo-800"
+          className="mt-2 text-sm text-indigo-600 hover:text-indigo-800"
         >
           Pas encore de compte ? S'inscrire
         </button>
