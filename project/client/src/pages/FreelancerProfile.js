@@ -60,6 +60,7 @@ export default function FreelancerProfile() {
   const name = freelancer.username || freelancer.name || 'Freelance';
   const avatar = freelancer.avatar || '/uploads/default_freelance_avatar.png';
   const title = freelancer.title || '';
+  const specialization = freelancer.specialization || '';
   const location = freelancer.location || '';
   const description = freelancer.description || '';
   const availability = freelancer.availability || 'Disponible';
@@ -114,7 +115,7 @@ export default function FreelancerProfile() {
               />
               <div className="ml-6">
                 <h1 className="text-3xl font-bold text-gray-900">{name}</h1>
-                <p className="text-xl text-gray-600">{title}</p>
+                <p className="text-xl text-gray-600">{title} {specialization}</p>
               </div>
             </div>
             <div className="mt-6 md:mt-0">

@@ -642,7 +642,7 @@ export default function UserProfile() {
         </div>
         <div className="mb-2"><b>SIRET :</b> {companyData.siret}</div>
         <div className="mb-2">
-          <b>TVA :</b> {companyData.vatNumber || companyData.vat_number || "Non renseigné"}
+          <b>Code Postal :</b> {companyData.vatNumber || companyData.vat_number || "Non renseigné"}
         </div>
         <div className="mb-2">
           <b>Ville :</b> {companyData.registrationCity || companyData.registration_city || "Non renseigné"}

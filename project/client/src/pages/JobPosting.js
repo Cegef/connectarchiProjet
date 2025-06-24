@@ -75,6 +75,9 @@ export default function JobPostings() {
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Appels d'offres</h1>
         </div>
+        <p className="text-center text-indigo-700 font-semibold mb-8">
+          Connectez-vous ou créez un compte pour découvrir et postuler aux meilleures opportunités du secteur !
+        </p>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {jobPostings.map((job) => (
             <div

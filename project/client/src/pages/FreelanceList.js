@@ -38,20 +38,25 @@ export default function FreelanceList() {
 
   useEffect(() => {
     const searchQuery = searchParams.get('search') || '';
-    if (searchQuery) {
-      setFilters(prev => ({
-        ...prev,
-        specialization: searchQuery
-      }));
-    }
+    const locationQuery = searchParams.get('location') || '';
+    setFilters(prev => ({
+      ...prev,
+      specialization: searchQuery,
+      location: locationQuery
+    }));
   }, [searchParams]);
 
   const handleSearch = (query) => {
+    // query est { specialty, location }
     setFilters(prev => ({
       ...prev,
-      specialization: query
+      specialization: query.specialty || '',
+      location: query.location || ''
     }));
-    setSearchParams({ search: query });
+    const params = [];
+    if (query.specialty) params.push(`search=${encodeURIComponent(query.specialty)}`);
+    if (query.location) params.push(`location=${encodeURIComponent(query.location)}`);
+    setSearchParams(params.length ? params.join('&') : '');
   };
 
   const resetFilters = () => {

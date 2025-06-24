@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
+import PolitiqueConfidentialite from './pages/PolitiqueConfidentialite';
 import Navbar from './components/Navbar';
 import FreelanceList from './pages/FreelanceList';
 import FreelancerProfile from './pages/FreelancerProfile';
@@ -36,6 +37,7 @@ function App() {
           <Route path="/portfolio/item/:id" element={<PortfolioItem />} />
           <Route path="/mot-de-passe-oublie" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/politique-confidentialite" element={<PolitiqueConfidentialite />} />
         </Routes>
         <Footer />
       </Router>

@@ -26,7 +26,8 @@ export default function FreelanceProfileSetup() {
     availability: 'Disponible',
     experienceYears: '0',
     avatar: '',
-    portfolio: [] // Tableau pour stocker les éléments du portfolio
+    portfolio: [], // Tableau pour stocker les éléments du portfolio
+    siret: '',
   });
 
   const [portfolioItem, setPortfolioItem] = useState(''); // État pour gérer l'entrée du portfolio
@@ -171,7 +172,8 @@ export default function FreelanceProfileSetup() {
           ...formData,
           hourlyRate: Number(formData.hourlyRate),
           experienceYears: Number(formData.experienceYears),
-          user_id: userId // Associe le profil freelance à l'utilisateur créé
+          user_id: userId, // Associe le profil freelance à l'utilisateur créé
+          siret: formData.siret
         })
         });
 
@@ -409,6 +411,22 @@ export default function FreelanceProfileSetup() {
                 <option value="Disponible">Disponible</option>
                 <option value="Indisponible">Indisponible</option>
               </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                SIRET
+              </label>
+              <input
+                type="text"
+                name="siret"
+                value={formData.siret}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                placeholder="ex: 12345678901234"
+                pattern="^\d{14}$"
+                title="Le numéro SIRET doit contenir 14 chiffres."
+              />
             </div>
 
             <div className="md:col-span-2">

@@ -1,15 +1,68 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import Cookies from 'js-cookie';
 import { ArrowRight, Users, Building, Briefcase, Award } from 'lucide-react';
 import SearchBar from '../components/SearchBar';
 import { Link } from 'react-router-dom';
 
 export default function Accueil() {
+  const [showCookieBanner, setShowCookieBanner] = useState(false);
+  const [cookieConsent, setCookieConsent] = useState(null);
+
+  useEffect(() => {
+    const consent = Cookies.get('cookieConsent');
+    if (!consent) {
+      setShowCookieBanner(true);
+    } else {
+      setCookieConsent(consent);
+      setShowCookieBanner(false);
+    }
+  }, []);
+
+  useEffect(() => {
+
+    if (!Cookies.get('csrf_token')) {
+        const token = Math.random().toString(36).substring(2) + Date.now().toString(36);
+        Cookies.set('csrf_token', token, { sameSite: 'strict', secure: true });
+    }
+    // Tracking activé seulement si cookieConsent === 'accepted'
+    if (cookieConsent === 'accepted') {
+      // Exemple : Google Analytics (remplace par ton script réel)
+      if (!window.gtag) {
+        const script = document.createElement('script');
+        script.src = 'https://www.googletagmanager.com/gtag/js?id=UA-XXXXXXXXX-X';
+        script.async = true;
+        document.body.appendChild(script);
+
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){window.dataLayer.push(arguments);}
+        window.gtag = gtag;
+        gtag('js', new Date());
+        gtag('config', 'UA-XXXXXXXXX-X');
+      }
+    }
+    // Si refusé, tu peux désactiver/retirer le tracking ici si besoin
+  }, [cookieConsent]);
+
+
+  const handleAcceptCookies = () => {
+    Cookies.set('cookieConsent', 'accepted', { expires: 365 });
+    setCookieConsent('accepted');
+    setShowCookieBanner(false);
+  };
+
+  const handleRefuseCookies = () => {
+    Cookies.set('cookieConsent', 'refused', { expires: 365 });
+    setCookieConsent('refused');
+    setShowCookieBanner(false);
+    // Ici tu peux aussi supprimer les cookies de tracking si besoin
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16">
         <div className="text-center">
           <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6">
-            Trouvez l'architecte freelance idéal pour votre projet
+            Trouvez le freelance idéal pour votre projet
           </h1>
           <p className="text-xl text-gray-600 mb-12 max-w-3xl mx-auto">
             Connectez-vous avec des architectes talentueux et donnez vie à vos projets
@@ -183,6 +236,27 @@ export default function Accueil() {
           </div>
         </div>
       </div>
+      {showCookieBanner && (
+        <div className="fixed bottom-0 left-0 w-full bg-gray-900 text-white px-4 py-4 flex flex-col md:flex-row items-center justify-between z-50">
+          <span>
+            Ce site utilise des cookies pour améliorer votre expérience. En continuant, vous acceptez notre politique de confidentialité.
+          </span>
+          <div className="flex mt-2 md:mt-0 md:ml-4 space-x-2">
+            <button
+              onClick={handleAcceptCookies}
+              className="px-4 py-2 bg-indigo-600 rounded hover:bg-indigo-700 transition"
+            >
+              J'accepte
+            </button>
+            <button
+              onClick={handleRefuseCookies}
+              className="px-4 py-2 bg-gray-600 rounded hover:bg-gray-700 transition"
+            >
+              Je refuse
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

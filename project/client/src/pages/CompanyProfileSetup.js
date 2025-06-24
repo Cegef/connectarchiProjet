@@ -236,7 +236,7 @@ export default function CompanyProfileSetup() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Numéro de TVA
+                Code Postal
               </label>
               <input
                 type="text"
@@ -249,7 +249,7 @@ export default function CompanyProfileSetup() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Ville d'enregistrement
+                Ville
               </label>
               <input
                 type="text"

@@ -30,6 +30,9 @@ export default function Footer() {
               <li>
                 <Link to="/profile" className="text-gray-700 hover:text-indigo-600">Mon Profil</Link>
               </li>
+              <li>
+                <Link to="/politique-confidentialite" className="text-gray-700 hover:text-indigo-600">Politique de confidentialité</Link>
+              </li>
             </ul>
           </div>
           <div>

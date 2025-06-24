@@ -355,6 +355,12 @@ app.post('/api/auth/reset-password', async (req, res) => {
 // Route POST pour créer un utilisateur
 app.post('/api/users', async (req, res) => {
   const { username, email, password, role } = req.body;
+  db.query('SELECT id FROM users WHERE email = ?', [email], (err, results) => {
+    if (err) return res.status(500).json({ error: 'Erreur serveur' });
+    if (results.length > 0) {
+      return res.status(400).json({ error: "Cet email est déjà utilisé." });
+    }
+  });
 
   const salt = await bcrypt.genSalt(10);
   const hashedPassword = await bcrypt.hash(password, salt);
@@ -396,13 +402,14 @@ app.post('/api/freelances', (req, res) => {
     availability,
     experienceYears,
     avatar,
-    portfolio
+    portfolio,
+    siret
   } = req.body;
 
   const sql = `
     INSERT INTO freelances (
-      user_id, title, specialization, location, hourly_rate, description, skills, availability, experience_years, avatar, portfolio
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      user_id, title, specialization, location, hourly_rate, description, skills, availability, experience_years, avatar, portfolio, siret
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
 
   db.query(
@@ -418,7 +425,8 @@ app.post('/api/freelances', (req, res) => {
       availability,
       experienceYears,
       avatar,
-      JSON.stringify(portfolio) // Convertit le portfolio en JSON pour le stockage
+      JSON.stringify(portfolio), // Convertit le portfolio en JSON pour le stockage
+      siret
     ],
     (err, result) => {
       if (err) {
