@@ -8,7 +8,7 @@ const defaultFilters = {
   specialization: '',
   location: '',
   minRate: 0,
-  maxRate: 100000, // très élevé pour ne rien exclure par défaut
+  maxRate: 1000, // très élevé pour ne rien exclure par défaut
   minExperience: 0
 };
 
@@ -130,27 +130,68 @@ export default function FreelanceList() {
               placeholder="Ex: Paris"
             />
           </div>
-          <div>
+          <div className="w-full max-w-md">
             <label className="block text-sm font-medium text-gray-700 mb-2">Tarif (€/h)</label>
-            <input
-              type="range"
-              min="0"
-              max="1000"
-              value={filters.minRate}
-              onChange={(e) => setFilters({ ...filters, minRate: Number(e.target.value) })}
-              className="w-full"
-            />
-            <input
-              type="range"
-              min="0"
-              max="1000"
-              value={filters.maxRate > 1000 ? 1000 : filters.maxRate}
-              onChange={(e) => setFilters({ ...filters, maxRate: Number(e.target.value) })}
-              className="w-full mt-2"
-            />
-            <div className="text-sm text-gray-600 flex justify-between">
+
+            <div className="relative w-full h-6">
+              {/* Track grise */}
+              <div className="absolute top-1/2 left-0 right-0 h-1 bg-gray-300 rounded -translate-y-1/2" />
+
+              {/* Track bleue dynamique */}
+              <div
+                className="absolute top-1/2 h-1 bg-blue-500 rounded -translate-y-1/2"
+                style={{
+                  left: `${(filters.minRate / 1000) * 100}%`,
+                  width: `${((filters.maxRate - filters.minRate) / 1000) * 100}%`,
+                }}
+              />
+
+              {/* Range MIN */}
+              <input
+                type="range"
+                min="0"
+                max="1000"
+                value={filters.minRate}
+                onChange={(e) => {
+                  const value = Number(e.target.value);
+                  if (value <= filters.maxRate) {
+                    setFilters({ ...filters, minRate: value });
+                  }
+                }}
+                className="absolute w-full h-6 bg-transparent pointer-events-none appearance-none
+                  [&::-webkit-slider-thumb]:pointer-events-auto
+                  [&::-webkit-slider-thumb]:appearance-none
+                  [&::-webkit-slider-thumb]:h-4
+                  [&::-webkit-slider-thumb]:w-4
+                  [&::-webkit-slider-thumb]:rounded-full
+                  [&::-webkit-slider-thumb]:bg-blue-500"
+              />
+
+              {/* Range MAX */}
+              <input
+                type="range"
+                min="0"
+                max="1000"
+                value={filters.maxRate}
+                onChange={(e) => {
+                  const value = Number(e.target.value);
+                  if (value >= filters.minRate) {
+                    setFilters({ ...filters, maxRate: value });
+                  }
+                }}
+                className="absolute w-full h-6 bg-transparent pointer-events-none appearance-none
+                  [&::-webkit-slider-thumb]:pointer-events-auto
+                  [&::-webkit-slider-thumb]:appearance-none
+                  [&::-webkit-slider-thumb]:h-4
+                  [&::-webkit-slider-thumb]:w-4
+                  [&::-webkit-slider-thumb]:rounded-full
+                  [&::-webkit-slider-thumb]:bg-blue-500"
+              />
+            </div>
+
+            <div className="text-sm text-gray-600 flex justify-between mt-2">
               <span>{filters.minRate} €/h</span>
-              <span>{filters.maxRate > 1000 ? '∞' : filters.maxRate + ' €/h'}</span>
+              <span>{filters.maxRate >= 1000 ? '∞' : filters.maxRate + ' €/h'}</span>
             </div>
           </div>
           <div>
