@@ -684,7 +684,12 @@ app.post('/api/messages', (req, res) => {
     let conversationId;
     if (results.length > 0) {
       conversationId = results[0].id;
-      insertMessage(conversationId);
+      // Récupère le rôle de l'expéditeur
+      db.query('SELECT role FROM users WHERE id = ?', [senderId], (err, userResults) => {
+        if (err || !userResults.length) return res.status(500).json({ error: 'Erreur serveur' });
+        const senderRole = userResults[0].role;
+        insertMessage(conversationId, senderRole);
+      });
     } else {
       // Créer la conversation
       const sqlCreate = `
@@ -694,15 +699,20 @@ app.post('/api/messages', (req, res) => {
       db.query(sqlCreate, [senderId, receiverId, subject], (err, result) => {
         if (err) return res.status(500).json({ error: 'Erreur serveur' });
         conversationId = result.insertId;
-        insertMessage(conversationId);
+        // Récupère le rôle de l'expéditeur
+        db.query('SELECT role FROM users WHERE id = ?', [senderId], (err, userResults) => {
+          if (err || !userResults.length) return res.status(500).json({ error: 'Erreur serveur' });
+          const senderRole = userResults[0].role;
+          insertMessage(conversationId, senderRole);
+        });
       });
     }
-    function insertMessage(conversationId) {
+    function insertMessage(conversationId, senderRole) {
       const sqlMsg = `
-        INSERT INTO messages (conversation_id, sender_id, subject, content, created_at)
-        VALUES (?, ?, ?, ?, NOW())
+        INSERT INTO messages (conversation_id, sender_id, receiver_id, sender_role, subject, content, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, NOW())
       `;
-      db.query(sqlMsg, [conversationId, senderId, subject, content], (err, result) => {
+      db.query(sqlMsg, [conversationId, senderId, receiverId, senderRole, subject, content], (err, result) => {
         if (err) return res.status(500).json({ error: 'Erreur serveur' });
 
         // ENVOI EMAIL AU RECEIVER
@@ -766,68 +776,72 @@ app.post('/api/conversations', (req, res) => {
 app.post('/api/messages/:conversationId', (req, res) => {
   const { conversationId } = req.params;
   const { senderId, content } = req.body;
-  console.log('POST /api/messages/:conversationId', { conversationId, senderId, content });
 
-  // 1. Insérer le message
-  const sql = `
-    INSERT INTO messages (conversation_id, sender_id, content)
-    VALUES (?, ?, ?)
-  `;
-  db.query(sql, [conversationId, senderId, content], (err, result) => {
-    if (err) {
-      console.error('Erreur lors de l\'envoi du message :', err);
-      return res.status(500).json({ error: 'Erreur serveur' });
+  // 1. Récupérer les deux utilisateurs de la conversation
+  const sqlConv = `SELECT user1_id, user2_id FROM conversations WHERE id = ?`;
+  db.query(sqlConv, [conversationId], (err, convResults) => {
+    if (err || convResults.length === 0) {
+      return res.status(500).json({ error: 'Erreur lors de la récupération de la conversation' });
     }
+    const conv = convResults[0];
+    const recipientId = (conv.user1_id === senderId) ? conv.user2_id : conv.user1_id;
 
-    // 2. Récupérer l'id du destinataire dans la conversation
-    const sqlConv = `
-      SELECT user1_id, user2_id FROM conversations WHERE id = ?
-    `;
-    db.query(sqlConv, [conversationId], (err2, convResults) => {
-      if (err2 || convResults.length === 0) {
-        console.error('Erreur lors de la récupération de la conversation :', err2);
-        // On retourne quand même le message même si l'email échoue
-        return res.status(201).json({
-          id: result.insertId,
-          conversation_id: conversationId,
-          senderId,
-          content,
-          created_at: new Date()
-        });
-      }
+    // 2. Récupérer le rôle de l'expéditeur
+    db.query('SELECT role FROM users WHERE id = ?', [senderId], (err2, userResults) => {
+      if (err2 || !userResults.length) return res.status(500).json({ error: 'Erreur serveur' });
+      const senderRole = userResults[0].role;
 
-      const conv = convResults[0];
-      // Le destinataire est l'autre utilisateur de la conversation
-      const recipientId = (conv.user1_id === senderId) ? conv.user2_id : conv.user1_id;
-
-      // 3. Récupérer l'email du destinataire
-      const sqlUser = `SELECT email FROM users WHERE id = ? LIMIT 1`;
-      db.query(sqlUser, [recipientId], (err3, userResults) => {
-        if (!err3 && userResults.length > 0) {
-          const recipientEmail = userResults[0].email;
-
-          // 4. Envoyer l'email de notification
-          transporter.sendMail({
-            from: process.env.EMAIL_USER,
-            to: recipientEmail,
-            subject: 'Nouveau message reçu',
-            text: `Vous avez reçu un nouveau message sur Bimply`,
-          }, (mailErr, info) => {
-            if (mailErr) {
-              console.error('Erreur lors de l\'envoi de l\'email :', mailErr);
-            }
-          });
+      // 3. Insérer le message
+      const sqlMsg = `
+        INSERT INTO messages (conversation_id, sender_id, receiver_id, sender_role, content)
+        VALUES (?, ?, ?, ?, ?)
+      `;
+      db.query(sqlMsg, [conversationId, senderId, recipientId, senderRole, content], (err3, result) => {
+        if (err3) {
+          console.error('Erreur lors de l\'envoi du message :', err3);
+          return res.status(500).json({ error: 'Erreur serveur' });
         }
-        // On retourne la réponse même si l'email échoue
-        res.status(201).json({
-          id: result.insertId,
-          conversation_id: conversationId,
-          senderId,
-          content,
-          created_at: new Date()
+
+        // 4. Récupérer l'email du destinataire et envoyer la notification (optionnel)
+        const sqlUser = `SELECT email FROM users WHERE id = ? LIMIT 1`;
+        db.query(sqlUser, [recipientId], (err4, userResults) => {
+          if (!err4 && userResults.length > 0) {
+            const recipientEmail = userResults[0].email;
+            transporter.sendMail({
+              from: process.env.EMAIL_USER,
+              to: recipientEmail,
+              subject: 'Nouveau message reçu',
+              text: `Vous avez reçu un nouveau message sur Bimply`,
+            }, (mailErr) => {
+              if (mailErr) {
+                console.error('Erreur lors de l\'envoi de l\'email :', mailErr);
+              }
+            });
+          }
+          // On retourne la réponse même si l'email échoue
+          res.status(201).json({
+            id: result.insertId,
+            conversation_id: conversationId,
+            senderId,
+            content,
+            created_at: new Date()
+          });
         });
       });
     });
+  });
+});
+
+app.get('/api/messages/contacted-count', (req, res) => {
+  const { userId } = req.query;
+  const sql = `
+    SELECT COUNT(DISTINCT receiver_id) AS count
+    FROM messages
+    WHERE sender_id = ? AND sender_role = 'entreprise'
+  `;
+  db.query(sql, [userId], (err, results) => {
+    if (err) return res.status(500).json({ error: 'Erreur serveur' });
+    res.json({ count: results[0]?.count || 0 });
   });
 });
 

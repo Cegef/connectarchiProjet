@@ -25,11 +25,11 @@ export default function SearchBar({ onSearch, className = '' }) {
       className={`max-w-2xl mx-auto bg-white border border-gray-200 rounded-lg shadow-sm p-6 ${className}`}
     >
       <div className="flex flex-col md:flex-row gap-4 items-stretch">
-        <div className="relative flex-1">
+        <div className="relative flex-[2]">
           <input
             type="text"
             className="w-full px-4 py-3 pl-12 pr-4 text-gray-700 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-indigo-400 shadow-sm"
-            placeholder="Recherchez le métier, la spécialité"
+            placeholder="Recherchez le métier, la specialité..."
             value={specialty}
             onChange={(e) => setSpecialty(e.target.value)}
           />

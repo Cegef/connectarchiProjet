@@ -107,7 +107,11 @@ export default function FreelancerCard({ freelancer }) {
             <span className="text-indigo-600 font-semibold">
               {displayHourlyRate}
             </span>
-            <span className="text-green-600 text-sm font-medium">
+            <span
+              className={`text-sm font-medium ${
+                availability === 'Indisponible' ? 'text-red-600' : 'text-green-600'
+              }`}
+            >
               {availability}
             </span>
           </div>

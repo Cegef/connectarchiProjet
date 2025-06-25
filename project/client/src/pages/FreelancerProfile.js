@@ -11,6 +11,8 @@ export default function FreelancerProfile() {
   const [portfolio, setPortfolio] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showMessageModal, setShowMessageModal] = useState(false);
+  const [canContact, setCanContact] = useState(true);
+  const [contactError, setContactError] = useState('');
 
   const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
   const navigate = useNavigate();
@@ -119,9 +121,26 @@ export default function FreelancerProfile() {
               </div>
             </div>
             <div className="mt-6 md:mt-0">
+              {contactError && (
+                <div className="text-red-500 mb-2">{contactError}</div>
+              )}
               {user ? (
                 <button 
-                  onClick={() => setShowMessageModal(true)}
+                  onClick={async () => {
+                    if (user?.role === 'entreprise') {
+                      // Vérifie la limite côté backend
+                      const res = await fetch(`${apiUrl}/api/messages/contacted-count?userId=${user.id}`, {
+                        headers: { Authorization: `Bearer ${user.token}` }
+                      });
+                      const data = await res.json();
+                      if (data.count >= 10) {
+                        setCanContact(false);
+                        setContactError("Vous avez atteint la limite de 10 freelances contactés.");
+                        return;
+                      }
+                    }
+                    setShowMessageModal(true);
+                  }}
                   className="w-full md:w-auto px-6 py-3 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 flex items-center justify-center"
                 >
                   <Mail className="h-5 w-5 mr-2" />
