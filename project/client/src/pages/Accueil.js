@@ -63,9 +63,13 @@ export default function Accueil() {
         <div className="text-center">
           <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6">
             Trouvez le freelance idéal pour votre projet
+            
           </h1>
-          <p className="text-xl text-gray-600 mb-12 max-w-3xl mx-auto">
+          <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6">
             Freelances, trouvez votre prochaine mission et répondez aux appels d’offres en un clic sans intermédiaire
+          </h2>
+          <p className="text-xl text-gray-600 mb-12 max-w-3xl mx-auto">
+            Connectez vous avec des collaborateurs talentueux et donnez vie à votre projet
           </p>
 
           <div>
@@ -111,7 +115,7 @@ export default function Accueil() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              ConnectArchi : Renouer le lien entre architectes et entreprises
+              ConnectArchi : Renouer le lien entre freelances et entreprises
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
               Notre mission est de créer un écosystème dynamique où les jeunes talents d'architecture peuvent s'épanouir et où les entreprises trouvent l'expertise dont elles ont besoin.

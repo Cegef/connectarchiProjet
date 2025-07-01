@@ -211,7 +211,7 @@ export default function FreelanceList() {
 
       {/* Liste des freelances */}
       <div className="w-4/4 ml-auto flex flex-col items-center w-full pl-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-4">Architectes Freelances</h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-4">Je recherche mon Freelance</h1>
         <div className="mb-8 w-full">
           <SearchBar onSearch={handleSearch} />
         </div>
