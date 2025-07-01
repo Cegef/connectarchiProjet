@@ -31,7 +31,7 @@ export default function Navbar() {
             <div className="flex sm:space-x-8">
               <Link to="/" className="flex items-center">
                 <Building2 className="h-8 w-8 text-indigo-600" />
-                <span className="ml-2 text-xl font-bold text-gray-900">ArchiConnect</span>
+                <span className="ml-2 text-xl font-bold text-gray-900">ConnectArchi</span>
               </Link>
             </div>
 

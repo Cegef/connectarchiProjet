@@ -7,7 +7,7 @@ export default function PolitiqueConfidentialite() {
       <section className="mb-6">
         <h2 className="text-xl font-semibold mb-2">1. Introduction</h2>
         <p>
-          La présente politique de confidentialité a pour objectif d’informer les utilisateurs de la plateforme Bimply, accessible à l’adresse <a href="https://www.bimply.fr" className="text-indigo-600 underline">https://www.bimply.fr</a>, sur la manière dont leurs données personnelles sont collectées, utilisées, conservées et protégées, conformément au Règlement Général sur la Protection des Données (RGPD) et à la législation française en vigueur.
+          La présente politique de confidentialité a pour objectif d’informer les utilisateurs de la plateforme Connectarchi, accessible à l’adresse <a href="https://www.connectarchi.com" className="text-indigo-600 underline">https://www.connectarchi.com</a>, sur la manière dont leurs données personnelles sont collectées, utilisées, conservées et protégées, conformément au Règlement Général sur la Protection des Données (RGPD) et à la législation française en vigueur.
         </p>
         <p className="mt-2">
           En utilisant la plateforme, vous acceptez les pratiques décrites dans cette politique.
@@ -17,9 +17,9 @@ export default function PolitiqueConfidentialite() {
         <h2 className="text-xl font-semibold mb-2">2. Responsable du traitement</h2>
         <p>
           Le responsable du traitement des données est :<br />
-          Bimply SAS<br />
-          Adresse : 123 Avenue du Bâtiment, 75001 Paris, France<br />
-          Email : contact@bimply.com
+          Audit Pro Etudes<br />
+          Adresse : Le Dome Roissy-Pole, 1 Rue de la Haye, 93290 Tremblay en France<br />
+          Email : contact@connectarchi.com
         </p>
       </section>
       <section className="mb-6">
@@ -76,7 +76,7 @@ export default function PolitiqueConfidentialite() {
       <section className="mb-6">
         <h2 className="text-xl font-semibold mb-2">7. Destinataires des données</h2>
         <ul className="list-disc ml-6">
-          <li>À l’équipe interne de Bimply</li>
+          <li>À l’équipe interne de Connectarchi</li>
           <li>À certains prestataires techniques (hébergement, paiement, maintenance)</li>
           <li>Aux autorités en cas d’obligations légales</li>
         </ul>
@@ -102,7 +102,7 @@ export default function PolitiqueConfidentialite() {
           <li>Droit de retirer votre consentement à tout moment</li>
         </ul>
         <p className="mt-2">
-          Pour exercer vos droits, contactez-nous à <a href="mailto:contact@bimply.com" className="text-indigo-600 underline">contact@bimply.com</a>. Une réponse vous sera apportée dans un délai d’un mois.
+          Pour exercer vos droits, contactez-nous à <a href="mailto:contact@connectarchi.com" className="text-indigo-600 underline">contact@connectarchi.com</a>. Une réponse vous sera apportée dans un délai d’un mois.
         </p>
       </section>
       <section className="mb-6">
@@ -135,8 +135,8 @@ export default function PolitiqueConfidentialite() {
         <h2 className="text-xl font-semibold mb-2">13. Contact</h2>
         <p>
           Pour toute question relative à cette politique ou au traitement de vos données :<br />
-          Bimply<br />
-          Email : <a href="mailto:contact@bimply.com" className="text-indigo-600 underline">contact@bimply.com</a>
+          Connectarchi<br />
+          Email : <a href="mailto:contact@connectarchi.com" className="text-indigo-600 underline">contact@connectarchi.com</a>
         </p>
       </section>
     </div>

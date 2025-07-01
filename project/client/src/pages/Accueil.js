@@ -112,7 +112,7 @@ export default function Accueil() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              ArchiConnect : Renouer le lien entre architectes et entreprises
+              ConnectArchi : Renouer le lien entre architectes et entreprises
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
               Notre mission est de créer un écosystème dynamique où les jeunes talents d'architecture peuvent s'épanouir et où les entreprises trouvent l'expertise dont elles ont besoin.
@@ -123,7 +123,7 @@ export default function Accueil() {
             <div>
               <h3 className="text-2xl font-bold text-gray-900 mb-4">Notre Vision</h3>
               <p className="text-gray-600 mb-6">
-                Fondée en 2023, ArchiConnect est née d'un constat simple : le secteur de l'architecture connaît une transformation profonde, avec de plus en plus de professionnels choisissant la voie du freelancing, tandis que les entreprises peinent à trouver les compétences spécifiques dont elles ont besoin.
+                Fondée en 2023, ConnectArchi est née d'un constat simple : le secteur de l'architecture connaît une transformation profonde, avec de plus en plus de professionnels choisissant la voie du freelancing, tandis que les entreprises peinent à trouver les compétences spécifiques dont elles ont besoin.
               </p>
               <p className="text-gray-600">
                 Notre plateforme vise à combler ce fossé en offrant un espace où les jeunes architectes peuvent mettre en valeur leur talent et où les entreprises peuvent facilement trouver les compétences adaptées à leurs projets spécifiques.
@@ -149,7 +149,7 @@ export default function Accueil() {
             <div className="order-1 md:order-2">
               <h3 className="text-2xl font-bold text-gray-900 mb-4">Notre Approche</h3>
               <p className="text-gray-600 mb-6">
-                Nous croyons en la puissance de la collaboration et de l'innovation. ArchiConnect n'est pas qu'une simple plateforme de mise en relation, c'est un écosystème complet qui accompagne les architectes freelances dans leur développement professionnel et aide les entreprises à concrétiser leurs visions architecturales.
+                Nous croyons en la puissance de la collaboration et de l'innovation. ConnectArchi n'est pas qu'une simple plateforme de mise en relation, c'est un écosystème complet qui accompagne les architectes freelances dans leur développement professionnel et aide les entreprises à concrétiser leurs visions architecturales.
               </p>
               <p className="text-gray-600">
                 Grâce à notre processus de vérification rigoureux, nous garantissons la qualité des profils et la sécurité des transactions, créant ainsi un environnement de confiance pour tous nos utilisateurs.
@@ -194,7 +194,7 @@ export default function Accueil() {
               {[
                 {
                   quote:
-                    "ArchiConnect m'a permis de développer mon activité freelance et de trouver des projets passionnants qui correspondent parfaitement à mes compétences.",
+                    "ConnectArchi m'a permis de développer mon activité freelance et de trouver des projets passionnants qui correspondent parfaitement à mes compétences.",
                   author: 'Marie Dupont',
                   role: "Architecte d'intérieur",
                   image:

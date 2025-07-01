@@ -7,7 +7,7 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Bimply</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">ConnectArchi</h3>
             <p className="text-gray-600">
               Plateforme de mise en relation entre freelances et entreprises du secteur architecture/BTP.
             </p>
@@ -37,13 +37,13 @@ export default function Footer() {
           </div>
           <div>
             <h3 className="text-lg font-semibold text-gray-900 mb-2">Contact</h3>
-            <p className="text-gray-600">Email : contact@bimply.com</p>
-            <p className="text-gray-600">Téléphone : +33 1 23 45 67 89</p>
-            <p className="text-gray-600">Adresse : 123 Avenue du Bâtiment, 75001 Paris, France</p>
+            <p className="text-gray-600">Email : contact@connectarchi.com</p>
+            <p className="text-gray-600">Téléphone : +33 1 87 66 36 46</p>
+            <p className="text-gray-600">Adresse : Le Dome Roissy-Pole, 1 Rue de la Haye, 93290 Tremblay en France</p>
           </div>
         </div>
         <div className="mt-8 text-center text-gray-600">
-          &copy; {new Date().getFullYear()} Bimply. Tous droits réservés.
+          &copy; {new Date().getFullYear()} ConnectArchi. Tous droits réservés.
         </div>
       </div>
     </footer>
