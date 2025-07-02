@@ -66,11 +66,24 @@ export default function Accueil() {
             
           </h1>
           <h2 className="text-1xl sm:text-3xl font-bold text-gray-900 mb-6">
-            Freelances, trouvez votre prochaine mission et répondez aux appels d’offres en un clic sans intermédiaire
+            Freelances, trouvez votre prochaine mission et répondez aux appels d’offres sans intermédiaire
           </h2>
-          <p className="text-xl text-gray-600 mb-12 max-w-3xl mx-auto">
+          <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
             Connectez vous avec des collaborateurs talentueux et donnez vie à votre projet
           </p>
+
+          <h3 className="text-2xl font-bold text-gray-900">Vous êtes une entreprise ?</h3>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">Trouvez le freelance idéal pour votre projet en quelques clics 
+            </p>
+            
+            <br></br>
+            <h3 className="text-2xl font-bold text-gray-900">Vous êtes freelance ?</h3>
+
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">Accédez à des missions ciblées et répondez gratuitement aux appels d’offres.
+            </p>
+            <p className="text-xl text-gray-900 font-bold max-w-3xl mx-auto mt-4 mb-12">
+              Zéro commission. Zéro frais. Liberté totale
+            </p>
 
           <div>
             <SearchBar />
