@@ -61,11 +61,11 @@ export default function Accueil() {
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16">
         <div className="text-center">
-          <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6">
+          <h1 className="text-1xl sm:text-3xl font-bold text-gray-900 mb-6">
             Trouvez le freelance idéal pour votre projet
             
           </h1>
-          <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6">
+          <h2 className="text-1xl sm:text-3xl font-bold text-gray-900 mb-6">
             Freelances, trouvez votre prochaine mission et répondez aux appels d’offres en un clic sans intermédiaire
           </h2>
           <p className="text-xl text-gray-600 mb-12 max-w-3xl mx-auto">
