@@ -65,25 +65,13 @@ export default function Accueil() {
             Trouvez le freelance idéal pour votre projet
             
           </h1>
-          <h2 className="text-1xl sm:text-3xl font-bold text-gray-900 mb-6">
-            Freelances, trouvez votre prochaine mission et répondez aux appels d’offres sans intermédiaire
-          </h2>
+          
           <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
             Connectez vous avec des collaborateurs talentueux et donnez vie à votre projet
           </p>
 
-          <h3 className="text-2xl font-bold text-gray-900">Vous êtes une entreprise ?</h3>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">Trouvez le freelance idéal pour votre projet en quelques clics 
-            </p>
+          
             
-            <br></br>
-            <h3 className="text-2xl font-bold text-gray-900">Vous êtes freelance ?</h3>
-
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">Accédez à des missions ciblées et répondez gratuitement aux appels d’offres.
-            </p>
-            <p className="text-xl text-gray-900 font-bold max-w-3xl mx-auto mt-4 mb-12">
-              Zéro commission. Zéro frais. Liberté totale
-            </p>
 
           <div>
             <SearchBar />
@@ -93,15 +81,17 @@ export default function Accueil() {
             {[
               {
                 title: 'Expertise Variée',
-                description: 'Des architectes spécialisés dans différents domaines',
+                description: 'Des freelances spécialisés dans différents domaines',
               },
               {
-                title: 'Collaboration Simple',
-                description: 'Un processus de mise en relation fluide et efficace',
+                title: 'Vous êtes une entreprise ?',
+                description: 'Trouvez le freelance idéal pour votre projet en quelques clics.',
+                more: 'Zéro commission. Zéro frais. Liberté totale'
               },
               {
-                title: 'Projets Garantis',
-                description: 'Des freelances vérifiés et des projets sécurisés',
+                title: 'Vous êtes freelance ?',
+                description: 'Accédez à des missions ciblées et répondez gratuitement aux appels d’offres.',
+                more:'Zéro commission. Zéro frais. Liberté totale'
               },
             ].map((feature, index) => (
               <div key={index} className="bg-white p-6 rounded-lg shadow-sm">
@@ -109,6 +99,7 @@ export default function Accueil() {
                   {feature.title}
                 </h3>
                 <p className="text-gray-600">{feature.description}</p>
+                {feature.more && <p className="text-gray-600 mt-2 font-bold">{feature.more}</p>}
               </div>
             ))}
           </div>
