@@ -14,9 +14,9 @@ export default function FreelancerProfile() {
   const [canContact, setCanContact] = useState(true);
   const [contactError, setContactError] = useState('');
 
-  const apiUrl = process.env.NODE_ENV === 'production' 
-    ? process.env.REACT_APP_API_URL  // URL sur Render
-    : 'http://localhost:5000';  // URL en développement local
+  const apiUrl = process.env.NODE_ENV === 'production'
+    ? process.env.REACT_APP_API_URL || 'https://back-connectarchi.onrender.com'
+    : 'http://localhost:5000';
   const navigate = useNavigate();
 
   useEffect(() => {

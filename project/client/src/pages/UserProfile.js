@@ -36,8 +36,8 @@ export default function UserProfile() {
     logo: '',
   });
 
-  const apiUrl = process.env.NODE_ENV === 'production' 
-      ? process.env.REACT_APP_API_URL  // URL sur Render
+  const apiUrl = process.env.NODE_ENV === 'production'
+      ? process.env.REACT_APP_API_URL || 'https://back-connectarchi.onrender.com'
       : 'http://localhost:5000';  // URL en développement local
 
 
@@ -412,9 +412,9 @@ export default function UserProfile() {
                 const formDataFile = new FormData();
                 formDataFile.append('logo', file);
                 try {
-                  const apiUrl = process.env.NODE_ENV === 'production' 
-                    ? process.env.REACT_APP_API_URL  // URL sur Render
-                    : 'http://localhost:5000';  // URL en développement local
+                  const apiUrl = process.env.NODE_ENV === 'production'
+                    ? process.env.REACT_APP_API_URL || 'https://back-connectarchi.onrender.com'
+                    : 'http://localhost:5000';
                   const res = await fetch(`${apiUrl}/api/upload/logo`, {
                     method: 'POST',
                     body: formDataFile,
@@ -564,8 +564,8 @@ export default function UserProfile() {
                     if (!file) return;
                     const formDataFile = new FormData();
                     formDataFile.append('image', file);
-                    const apiUrl = process.env.NODE_ENV === 'production' 
-                      ? process.env.REACT_APP_API_URL  // URL sur Render
+                    const apiUrl = process.env.NODE_ENV === 'production'
+                      ? process.env.REACT_APP_API_URL || 'https://back-connectarchi.onrender.com'
                       : 'http://localhost:5000';  // URL en développement local
                     const res = await fetch(`${apiUrl}/api/upload/portfolio`, {
                       method: 'POST',

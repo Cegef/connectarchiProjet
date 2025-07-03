@@ -24,8 +24,8 @@ export function AuthProvider({ children }) {
   // Fonction de connexion
   const login = async (email, password) => {
     try {
-      const apiUrl = process.env.NODE_ENV === 'production' 
-        ? process.env.REACT_APP_API_URL  // URL sur Render
+      const apiUrl = process.env.NODE_ENV === 'production'
+        ? process.env.REACT_APP_API_URL || 'https://back-connectarchi.onrender.com'
         : 'http://localhost:5000';  // URL en développement local
       const response = await fetch(`${apiUrl}/api/login`, {
         method: 'POST',
@@ -50,9 +50,9 @@ export function AuthProvider({ children }) {
   // Fonction d'inscription
   const register = async (email, password, name) => {
     try {
-      const apiUrl = process.env.NODE_ENV === 'production' 
-        ? process.env.REACT_APP_API_URL  // URL sur Render
-        : 'http://localhost:5000';  // URL en développement local
+      const apiUrl = process.env.NODE_ENV === 'production'
+        ? process.env.REACT_APP_API_URL || 'https://back-connectarchi.onrender.com'
+        : 'http://localhost:5000';
       const response = await fetch(`${apiUrl}/api/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

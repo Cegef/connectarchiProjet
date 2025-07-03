@@ -23,8 +23,8 @@ export default function CreateJobModal({ isOpen, onClose }) {
   useEffect(() => {
     const fetchEntreprise = async () => {
       if (user && user.role === 'entreprise') {
-        const apiUrl = process.env.NODE_ENV === 'production' 
-          ? process.env.REACT_APP_API_URL  // URL sur Render
+        const apiUrl = process.env.NODE_ENV === 'production'
+          ? process.env.REACT_APP_API_URL || 'https://back-connectarchi.onrender.com'
           : 'http://localhost:5000';  // URL en développement local
         const res = await fetch(`${apiUrl}/api/companies/by-user/${user.id}`);
         if (res.ok) {
@@ -51,9 +51,9 @@ export default function CreateJobModal({ isOpen, onClose }) {
     setLoading(true);
     setError('');
     try {
-      const apiUrl = process.env.NODE_ENV === 'production' 
-          ? process.env.REACT_APP_API_URL  // URL sur Render
-          : 'http://localhost:5000';  // URL en développement local
+      const apiUrl = process.env.NODE_ENV === 'production'
+        ? process.env.REACT_APP_API_URL || 'https://back-connectarchi.onrender.com'
+        : 'http://localhost:5000';
       const res = await fetch(`${apiUrl}/api/appels-doffre`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

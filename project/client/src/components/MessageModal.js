@@ -17,9 +17,9 @@ export default function MessageModal({ isOpen, onClose, receiverId, senderName, 
     setLoading(true);
     setError('');
     try {
-      const apiUrl = process.env.NODE_ENV === 'production' 
-        ? process.env.REACT_APP_API_URL  // URL sur Render
-        : 'http://localhost:5000';  // URL en développement local
+      const apiUrl = process.env.NODE_ENV === 'production'
+        ? process.env.REACT_APP_API_URL || 'https://back-connectarchi.onrender.com'
+        : 'http://localhost:5000';
       const res = await fetch(`${apiUrl}/api/messages`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

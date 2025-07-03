@@ -50,9 +50,9 @@ export default function CompanyProfileSetup() {
     formData.append('logo', file);
 
     try {
-      const apiUrl = process.env.NODE_ENV === 'production' 
-        ? process.env.REACT_APP_API_URL  // URL sur Render
-        : 'http://localhost:5000';  // URL en développement local
+      const apiUrl = process.env.NODE_ENV === 'production'
+        ? process.env.REACT_APP_API_URL || 'https://back-connectarchi.onrender.com'
+        : 'http://localhost:5000';
       const res = await fetch(`${apiUrl}/api/upload/logo`, {
         method: 'POST',
         body: formData,
@@ -72,8 +72,8 @@ export default function CompanyProfileSetup() {
     setLoading(true);
     setError('');
 
-    const apiUrl = process.env.NODE_ENV === 'production' 
-      ? process.env.REACT_APP_API_URL  // URL sur Render
+    const apiUrl = process.env.NODE_ENV === 'production'
+      ? process.env.REACT_APP_API_URL || 'https://back-connectarchi.onrender.com'
       : 'http://localhost:5000';  // URL en développement local
 
     try {
