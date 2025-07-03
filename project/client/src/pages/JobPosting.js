@@ -23,11 +23,11 @@ export default function JobPostings() {
     try {
         const resJobs = await fetch(`${apiUrl}/api/appels-doffre`);
         const jobs = await resJobs.json();
-        setJobPostings(jobs);
+        setJobPostings(Array.isArray(jobs) ? jobs : []);
 
         const resCompanies = await fetch(`${apiUrl}/api/companies`);
         const companiesData = await resCompanies.json();
-        setCompanies(companiesData);
+        setCompanies(Array.isArray(companiesData) ? companiesData : []);
     } catch (err) {
         setJobPostings([]);
         setCompanies([]);
@@ -81,7 +81,7 @@ export default function JobPostings() {
           Connectez-vous ou créez un compte pour découvrir et postuler aux meilleures opportunités du secteur !
         </p>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {jobPostings.map((job) => (
+          {Array.isArray(jobPostings) && jobPostings.map((job) => (
             <div
               key={job.id}
               className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 opacity-60 pointer-events-none"

@@ -205,7 +205,7 @@ export default function FreelanceProfileSetup() {
           });
         }
 
-        alert('Compte et profil freelance créés avec succès.');
+        
         navigate('/profile'); // Redirige vers la page de profil
     } catch (err) {
         console.error('Erreur :', err);

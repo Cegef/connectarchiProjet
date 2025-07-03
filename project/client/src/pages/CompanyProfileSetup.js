@@ -140,7 +140,7 @@ export default function CompanyProfileSetup() {
         throw new Error(errorData.error || 'Erreur lors de la sauvegarde du profil entreprise');
       }
 
-      alert('Compte et profil entreprise créés avec succès.');
+      
       navigate('/profile');
     } catch (err) {
       setError(err.message || 'Une erreur est survenue. Veuillez réessayer.');
