@@ -9,7 +9,9 @@ export default function ForgotPassword() {
     e.preventDefault();
     setError('');
     try {
-      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+      const apiUrl = process.env.NODE_ENV === 'production' 
+        ? process.env.REACT_APP_API_URL  // URL sur Render
+        : 'http://localhost:5000';  // URL en développement local
       const res = await fetch(`${apiUrl}/api/auth/forgot-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

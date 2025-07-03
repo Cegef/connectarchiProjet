@@ -929,6 +929,11 @@ app.get('/api/applications/by-company/:userId', (req, res) => {
   });
 });
 
+// Rediriger toutes les requêtes non gérées vers le frontend sur OVH
+app.get('*', (req, res) => {
+  res.redirect('https://www.connectarchi.com/');
+});
+
 app.listen(PORT, () => {
   console.log(`🚀 Serveur backend lancé sur http://localhost:${PORT}`);
 });

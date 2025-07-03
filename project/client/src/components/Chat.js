@@ -6,7 +6,10 @@ export default function Chat({ conversationId, userId, onClose }) {
   const [loading, setLoading] = useState(true);
   const messagesEndRef = useRef(null);
 
-  const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+  const apiUrl = process.env.NODE_ENV === 'production' 
+      ? process.env.REACT_APP_API_URL  // URL sur Render
+      : 'http://localhost:5000';  // URL en développement local
+  
 
   // Récupère les messages de la conversation
   useEffect(() => {

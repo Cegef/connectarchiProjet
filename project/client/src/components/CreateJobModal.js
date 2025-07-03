@@ -23,7 +23,9 @@ export default function CreateJobModal({ isOpen, onClose }) {
   useEffect(() => {
     const fetchEntreprise = async () => {
       if (user && user.role === 'entreprise') {
-        const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+        const apiUrl = process.env.NODE_ENV === 'production' 
+          ? process.env.REACT_APP_API_URL  // URL sur Render
+          : 'http://localhost:5000';  // URL en développement local
         const res = await fetch(`${apiUrl}/api/companies/by-user/${user.id}`);
         if (res.ok) {
           const data = await res.json();
@@ -49,7 +51,9 @@ export default function CreateJobModal({ isOpen, onClose }) {
     setLoading(true);
     setError('');
     try {
-      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+      const apiUrl = process.env.NODE_ENV === 'production' 
+          ? process.env.REACT_APP_API_URL  // URL sur Render
+          : 'http://localhost:5000';  // URL en développement local
       const res = await fetch(`${apiUrl}/api/appels-doffre`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

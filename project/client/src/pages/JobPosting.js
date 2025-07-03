@@ -14,7 +14,9 @@ export default function JobPostings() {
   const [companies, setCompanies] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+  const apiUrl = process.env.NODE_ENV === 'production' 
+    ? process.env.REACT_APP_API_URL  // URL sur Render
+    : 'http://localhost:5000';  // URL en développement local
 
   const fetchData = async () => {
     setLoading(true);

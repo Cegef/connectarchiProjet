@@ -50,7 +50,9 @@ export default function CompanyProfileSetup() {
     formData.append('logo', file);
 
     try {
-      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+      const apiUrl = process.env.NODE_ENV === 'production' 
+        ? process.env.REACT_APP_API_URL  // URL sur Render
+        : 'http://localhost:5000';  // URL en développement local
       const res = await fetch(`${apiUrl}/api/upload/logo`, {
         method: 'POST',
         body: formData,
@@ -70,7 +72,9 @@ export default function CompanyProfileSetup() {
     setLoading(true);
     setError('');
 
-    const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+    const apiUrl = process.env.NODE_ENV === 'production' 
+      ? process.env.REACT_APP_API_URL  // URL sur Render
+      : 'http://localhost:5000';  // URL en développement local
 
     try {
       // Enregistrement de l'utilisateur
