@@ -929,10 +929,14 @@ app.get('/api/applications/by-company/:userId', (req, res) => {
   });
 });
 
-// Rediriger toutes les requêtes non gérées vers le frontend sur OVH
-app.get('*', (req, res) => {
-  res.redirect('https://connectarchi.com/');
-});
+// Servir les fichiers statiques en production
+if (process.env.NODE_ENV === 'production') {
+  const buildPath = path.join(__dirname, '../client/build'); // ou '../build' selon ton arborescence réelle
+  app.use(express.static(buildPath));
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(buildPath, 'index.html'));
+  });
+}
 
 app.listen(PORT, () => {
   console.log(`🚀 Serveur backend lancé sur http://localhost:${PORT}`);
