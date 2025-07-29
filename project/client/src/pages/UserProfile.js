@@ -60,7 +60,6 @@ export default function UserProfile() {
         .then(async (res) => {
           if (!res.ok) throw new Error('Erreur API');
           const data = await res.json();
-          console.log('Réponse API freelance:', data);
           return data;
         })
         .then((freelancer) => {
@@ -93,7 +92,6 @@ export default function UserProfile() {
         .then(async (res) => {
           if (!res.ok) throw new Error('Erreur API');
           const data = await res.json();
-          console.log('Réponse API entreprise:', data);
           return data;
         })
         .then((company) => {
@@ -663,11 +661,7 @@ export default function UserProfile() {
       </div>
     );
 
-  // Pour debug
-  console.log('user:', user);
-  console.log('token:', token);
-  console.log('freelancerData:', freelancerData);
-  console.log('companyData:', companyData);
+
 
   const handleContactFreelance = async (freelancerId, jobId, jobTitle, freelancerName, companyName) => {
     try {
@@ -706,7 +700,6 @@ export default function UserProfile() {
 
   if (user?.role === 'entreprise' && Array.isArray(applications)) {
     applications.forEach(app => {
-      console.log('Candidature reçue :', app);
     });
   }
 

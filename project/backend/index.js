@@ -670,7 +670,6 @@ app.post('/api/applications', (req, res) => {
 
 app.post('/api/messages', (req, res) => {
   const { senderId, receiverId, subject, content } = req.body;
-  console.log('POST /api/messages', { senderId, receiverId, subject, content });
   if (!senderId || !receiverId || !subject || !content) {
     return res.status(400).json({ error: 'Champs manquants' });
   }
