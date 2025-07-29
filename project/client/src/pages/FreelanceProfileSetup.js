@@ -116,7 +116,7 @@ export default function FreelanceProfileSetup() {
     : 'http://localhost:5000';  // URL en développement local
 
     try {
-        console.log('Données envoyées :', userFormData);
+        
 
         // Enregistrement de l'utilisateur
 
