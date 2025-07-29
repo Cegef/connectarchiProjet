@@ -14,11 +14,12 @@ const PORT = process.env.PORT || 5000;
 
 app.use(cors());
 app.use(express.json());
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Configuration de multer pour l'upload d'images
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, path.join(__dirname, '../client/public/uploads/avatars'));
+    cb(null, path.join(__dirname, 'uploads/avatars'));
   },
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
@@ -28,7 +29,7 @@ const storage = multer.diskStorage({
 
 const logoStorage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, '../client/public/uploads/logos');
+    cb(null, path.join(__dirname, 'uploads/logos'));
   },
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
@@ -80,12 +81,12 @@ app.post('/api/upload/logo', uploadLogo.single('logo'), (req, res) => {
   res.json({ url: logoUrl });
 });
 
-app.use('/uploads', express.static('uploads'));
+
 
 
 const portfolioStorage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, path.join(__dirname, '../client/public/uploads/portfolio'));
+    cb(null, path.join(__dirname, 'uploads/portfolio'));
   },
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
@@ -933,9 +934,6 @@ app.get('/api/applications/by-company/:userId', (req, res) => {
 if (process.env.NODE_ENV === 'production') {
   const buildPath = path.join(__dirname, '../client/build'); // ou '../build' selon ton arborescence réelle
   app.use(express.static(buildPath));
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(buildPath, 'index.html'));
-  });
 }
 
 app.listen(PORT, () => {

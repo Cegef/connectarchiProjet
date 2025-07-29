@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { Upload } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
+const backendUrl = process.env.REACT_APP_BACKEND_URL || 'https://back-connectarchi.onrender.com';
+
 export default function FreelanceProfileSetup() {
   const navigate = useNavigate();
   const { setAuthData } = useAuth();
@@ -117,6 +119,22 @@ export default function FreelanceProfileSetup() {
         console.log('Données envoyées :', userFormData);
 
         // Enregistrement de l'utilisateur
+
+        // --- Vérification API entreprise pour freelance via SIREN uniquement
+        const siret = formData.siret;
+        const sirenFromSiret = siret.substring(0, 9);
+
+        const searchResponse = await fetch(`https://recherche-entreprises.api.gouv.fr/search?q=${sirenFromSiret}`);
+        const searchData = await searchResponse.json();
+        const matches = searchData.results || [];
+
+        const sirenMatch = matches.some(company => company.siren === sirenFromSiret);
+        if (!sirenMatch) {
+          setError("Le SIREN fourni est introuvable dans la base des entreprises.");
+          setLoading(false);
+          return;
+        }
+
         const userResponse = await fetch(`${apiUrl}/api/users`, {
         method: 'POST',
         headers: {
@@ -286,7 +304,7 @@ export default function FreelanceProfileSetup() {
                 <div className="w-32 h-32 bg-gray-100 rounded-lg flex items-center justify-center border-2 border-dashed border-gray-300">
                   {formData.avatar ? (
                     <img
-                      src={formData.avatar}
+                      src={`${backendUrl}${formData.avatar}`}
                       alt="Avatar"
                       className="w-full h-full object-cover rounded-lg"
                     />
@@ -538,7 +556,7 @@ export default function FreelanceProfileSetup() {
                     <div>
                       <b>{item.title}</b>
                       <div>{item.description}</div>
-                      {item.image && <img src={item.image} alt={item.title} className="w-16 h-16 object-cover mt-1" />}
+                      {item.image && <img src={`${backendUrl}${item.image}`} alt={item.title} className="w-16 h-16 object-cover mt-1" />}
                     </div>
                   )}
                   <button

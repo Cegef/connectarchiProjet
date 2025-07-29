@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
+const backendUrl = process.env.REACT_APP_BACKEND_URL || 'https://back-connectarchi.onrender.com';
+
 export default function CompanyProfileSetup() {
   const navigate = useNavigate();
   const { setAuthData } = useAuth();
@@ -78,6 +80,22 @@ export default function CompanyProfileSetup() {
 
     try {
       // Enregistrement de l'utilisateur
+
+      // --- Vérification API entreprise via nom + siret
+      const siret = formData.siret;
+      const sirenFromSiret = siret.substring(0, 9);
+
+      const searchResponse = await fetch(`https://recherche-entreprises.api.gouv.fr/search?q=${encodeURIComponent(formData.name)}`);
+      const searchData = await searchResponse.json();
+      const matches = searchData.results || [];
+
+      const sirenMatch = matches.some(company => company.siren === sirenFromSiret);
+      if (!sirenMatch) {
+        setError("Le nom de l’entreprise ne correspond pas au SIREN du SIRET fourni.");
+        setLoading(false);
+        return;
+      }
+
       const userResponse = await fetch(`${apiUrl}/api/users`, {
         method: 'POST',
         headers: {
@@ -329,7 +347,7 @@ export default function CompanyProfileSetup() {
                   <div className="w-32 h-32 bg-gray-100 rounded-lg flex items-center justify-center border-2 border-dashed border-gray-300">
                     {formData.logo ? (
                       <img
-                        src={formData.logo}
+                        src={`${backendUrl}${formData.logo}`}
                         alt="Logo entreprise"
                         className="w-full h-full object-contain rounded-lg"
                       />

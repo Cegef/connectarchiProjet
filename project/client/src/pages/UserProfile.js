@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
+const backendUrl = process.env.REACT_APP_BACKEND_URL || 'https://back-connectarchi.onrender.com';
+
 export default function UserProfile() {
   const navigate = useNavigate();
   const { user, token } = useAuth();
@@ -451,7 +453,7 @@ export default function UserProfile() {
       <div className="bg-white rounded-lg shadow-md p-6">
         <div className="mb-4">
           <img
-            src={freelancerData.avatar || 'uploads/default_freelance_avatar.png'}
+            src={freelancerData.avatar ? `${backendUrl}${freelancerData.avatar}` : `${backendUrl}/uploads/default_freelance_avatar.png`}
             alt={freelancerData.name}
             className="w-20 h-20 rounded mr-4 object-cover"
           />
@@ -495,7 +497,7 @@ export default function UserProfile() {
                   >
                     {item.image && (
                       <img
-                        src={item.image}
+                        src={`${backendUrl}${item.image}`}
                         alt={item.title || `Projet ${idx + 1}`}
                         className="w-full h-48 object-cover"
                       />
@@ -637,7 +639,7 @@ export default function UserProfile() {
       <div className="bg-white rounded-lg shadow-md p-6">
         <div className="mb-4 flex items-center">
           <img
-            src={companyData.logo || 'uploads/default_entreprise_avatar.png'}
+            src={companyData.logo ? `${backendUrl}${companyData.logo}` : `${backendUrl}/uploads/default_entreprise_avatar.png`}
             alt={companyData.name}
             className="w-20 h-20 rounded mr-4 object-cover"
           />
@@ -867,13 +869,13 @@ export default function UserProfile() {
                   <div className="flex-shrink-0">
                     {conv.other_role === 'entreprise' ? (
                       <img
-                        src={conv.other_avatar || '/uploads/default_entreprise_avatar.png'}
+                        src={conv.other_avatar ? `${backendUrl}${conv.other_avatar}` : `${backendUrl}/uploads/default_entreprise_avatar.png`}
                         alt={`Logo de ${conv.other_username}`}
                         className="w-16 h-16 object-contain rounded-lg" // Logo carré pour entreprise
                       />
                     ) : (
                       <img
-                        src={conv.other_avatar || '/uploads/default_freelance_avatar.png'}
+                        src={conv.other_avatar ? `${backendUrl}${conv.other_avatar}` : `${backendUrl}/uploads/default_freelance_avatar.png`}
                         alt={`Avatar de ${conv.other_username}`}
                         className="w-12 h-12 object-cover rounded-full" // Avatar rond pour freelance
                       />

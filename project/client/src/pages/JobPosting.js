@@ -59,9 +59,7 @@ export default function JobPostings() {
     fetchData();
   }, [apiUrl]);
 
-  useEffect(() => {
-    if (!user) setShowAuthModal(true);
-  }, [user]);
+  
 
   if (loading) {
     return (
@@ -84,7 +82,8 @@ export default function JobPostings() {
           {Array.isArray(jobPostings) && jobPostings.map((job) => (
             <div
               key={job.id}
-              className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 opacity-60 pointer-events-none"
+              className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 opacity-60 pointer-events-auto cursor-pointer"
+              onClick={() => setShowAuthModal(true)}
             >
               <div className="p-6">
                 <div className="flex items-start justify-between mb-4">

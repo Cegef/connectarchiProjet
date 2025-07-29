@@ -4,6 +4,8 @@ import { MapPin, Mail, Calendar, Clock, ArrowLeft, Award } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import MessageModal from '../components/MessageModal';
 
+const backendUrl = process.env.REACT_APP_BACKEND_URL || 'https://back-connectarchi.onrender.com';
+
 export default function FreelancerProfile() {
   const { id } = useParams();
   const { user } = useAuth();
@@ -62,7 +64,9 @@ export default function FreelancerProfile() {
 
   // Gestion des champs (camelCase ou snake_case)
   const name = freelancer.username || freelancer.name || 'Freelance';
-  const avatar = freelancer.avatar || '/uploads/default_freelance_avatar.png';
+  const avatar = freelancer.avatar
+    ? `${backendUrl}${freelancer.avatar}`
+    : `${backendUrl}/uploads/default_freelance_avatar.png`;
   const title = freelancer.title || '';
   const specialization = freelancer.specialization || '';
   const location = freelancer.location || '';
@@ -87,8 +91,9 @@ export default function FreelancerProfile() {
 
   // Pour l'image de couverture, on prend la première image du vrai portfolio
   const coverImage =
-    (portfolio[0] && portfolio[0].image) ||
-    '/uploads/default-portfolio.jpg';
+    portfolio[0] && portfolio[0].image
+      ? `${backendUrl}${portfolio[0].image}`
+      : `${backendUrl}/uploads/default-portfolio.jpg`;
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -190,7 +195,7 @@ export default function FreelancerProfile() {
                           title="Voir le projet"
                         >
                           <img
-                            src={item.image}
+                            src={`${backendUrl}${item.image}`}
                             alt={item.title || `Projet ${idx + 1}`}
                             className="w-full h-48 object-cover"
                           />

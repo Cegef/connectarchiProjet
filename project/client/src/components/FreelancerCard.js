@@ -2,9 +2,12 @@ import React from 'react';
 import { MapPin, Clock } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
+const backendUrl = process.env.REACT_APP_BACKEND_URL || 'https://back-connectarchi.onrender.com';
+
 export default function FreelancerCard({ freelancer }) {
   const name = freelancer.username || freelancer.name || 'Freelance';
-  const avatar = freelancer.avatar || '/uploads/default_freelance_avatar.png';
+  const avatarPath = freelancer.avatar || '/uploads/default_freelance_avatar.png';
+  const avatar = `${backendUrl}${avatarPath}`;
   const title = freelancer.title || '';
   const location = freelancer.location || '';
   const availability = freelancer.availability || 'Disponible';
@@ -44,6 +47,8 @@ export default function FreelancerCard({ freelancer }) {
       portfolioImage = freelancer.portfolio;
     }
   }
+
+  portfolioImage = `${backendUrl}${portfolioImage}`;
 
   // Gère snake_case et camelCase pour les champs numériques
   const hourlyRate = freelancer.hourlyRate ?? freelancer.hourly_rate ?? '';

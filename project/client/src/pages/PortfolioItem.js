@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 
+const backendUrl = process.env.REACT_APP_BACKEND_URL || 'https://back-connectarchi.onrender.com';
+
 export default function PortfolioItem() {
   const { id } = useParams();
   const [project, setProject] = useState(null);
@@ -46,7 +48,7 @@ export default function PortfolioItem() {
       </Link>
       {project.image && (
         <img
-          src={project.image}
+          src={`${backendUrl}${project.image}`}
           alt={project.title || 'Projet'}
           className="w-full h-64 object-cover rounded-lg mb-6"
         />
