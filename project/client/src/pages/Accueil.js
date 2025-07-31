@@ -85,23 +85,35 @@ export default function Accueil() {
               },
               {
                 title: 'Vous êtes une entreprise ?',
-                description: 'Trouvez le freelance idéal pour votre projet en quelques clics.',
-                more: 'Zéro commission. Zéro frais. Liberté totale'
+                description: 'Inscrivez- vous et trouvez le freelance idéal pour votre projet en un clic.',
+                more: 'Zéro commission. Zéro frais. Liberté totale',
+                link: '/company-setup'
               },
               {
                 title: 'Vous êtes freelance ?',
-                description: 'Accédez à des missions ciblées et répondez gratuitement aux appels d’offres.',
-                more:'Zéro commission. Zéro frais. Liberté totale'
+                description: 'Inscrivez- vous et accédez à des missions ciblées et répondez gratuitement aux appels d’offres.',
+                more:'Zéro commission. Zéro frais. Liberté totale',
+                link: '/freelance-setup'
               },
-            ].map((feature, index) => (
-              <div key={index} className="bg-white p-6 rounded-lg shadow-sm">
-                <h3 className="text-xl font-semibold text-gray-900 mb-3">
-                  {feature.title}
-                </h3>
-                <p className="text-gray-600">{feature.description}</p>
-                {feature.more && <p className="text-gray-600 mt-2 font-bold">{feature.more}</p>}
-              </div>
-            ))}
+            ].map((feature, index) => {
+              const CardContent = (
+                <div className="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition">
+                  <h3 className="text-xl font-semibold text-gray-900 mb-3">
+                    {feature.title}
+                  </h3>
+                  <p className="text-gray-600">{feature.description}</p>
+                  {feature.more && <p className="text-gray-600 mt-2 font-bold">{feature.more}</p>}
+                </div>
+              );
+
+              return feature.link ? (
+                <Link to={feature.link} key={index} className="block">
+                  {CardContent}
+                </Link>
+              ) : (
+                <div key={index}>{CardContent}</div>
+              );
+            })}
           </div>
 
           <Link
