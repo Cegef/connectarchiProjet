@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Upload } from 'lucide-react';
+import { Upload, FileText } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const backendUrl = process.env.REACT_APP_BACKEND_URL || 'https://back-connectarchi.onrender.com';
 
-export default function FreelanceProfileSetup() {
+export default function JobSeekerProfileSetup() {
   const navigate = useNavigate();
   const { setAuthData } = useAuth();
 
@@ -14,36 +14,81 @@ export default function FreelanceProfileSetup() {
     username: '',
     email: '',
     password: '',
-    role: 'freelance' // Par défaut, le rôle est "freelance"
+    phone: '',
+    role: 'jobseeker' // Par défaut, le rôle est "jobseeker"
   });
 
-  // État pour le formulaire de profil freelance
+  // État pour le formulaire de profil demandeur d'emploi
   const [formData, setFormData] = useState({
     title: '',
     specialization: '',
     location: '',
-    hourlyRate: '',
+    expectedSalary: '',
     description: '',
     skills: '',
-    availability: 'Disponible',
+    availability: 'Disponible immédiatement',
     experienceYears: '0',
     avatar: '',
-    portfolio: [], // Tableau pour stocker les éléments du portfolio
-    siret: '',
+    cv: '' // URL du CV uploadé
   });
 
+
+  const [verificationCode, setVerificationCode] = useState('');
+  const [codeSent, setCodeSent] = useState(false);
+  const [isPhoneVerified, setIsPhoneVerified] = useState(false);
   const [acceptPrivacyPolicy, setAcceptPrivacyPolicy] = useState(false);
-  const [portfolioItem, setPortfolioItem] = useState(''); // État pour gérer l'entrée du portfolio
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const [portfolioType, setPortfolioType] = useState('link'); // 'link' ou 'project'
-  const [project, setProject] = useState({
-    title: '',
-    description: '',
-    image: '',
-    url: ''
-  });
+
+  const sendVerificationCode = async () => {
+    const apiUrl = process.env.NODE_ENV === 'production'
+      ? process.env.REACT_APP_API_URL || 'https://back-connectarchi.onrender.com'
+      : 'http://localhost:5000';
+
+    try {
+      const res = await fetch(`${apiUrl}/api/verification/send`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phoneNumber: userFormData.phone })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setCodeSent(true);
+        setError('');
+      } else {
+        setError('Erreur lors de l’envoi du code.');
+      }
+    } catch (err) {
+      setError('Erreur lors de l’envoi du code SMS.');
+    }
+  };
+
+  const verifyCode = async () => {
+    const apiUrl = process.env.NODE_ENV === 'production'
+      ? process.env.REACT_APP_API_URL || 'https://back-connectarchi.onrender.com'
+      : 'http://localhost:5000';
+
+    try {
+      const res = await fetch(`${apiUrl}/api/verification/verify`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          phoneNumber: userFormData.phone,
+          code: verificationCode
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setIsPhoneVerified(true);
+        setError('');
+      } else {
+        setError('Code invalide ou expiré.');
+      }
+    } catch (err) {
+      setError('Erreur lors de la vérification du code.');
+    }
+  };
 
   // Gestion des changements dans le formulaire utilisateur
   const handleUserChange = (e) => {
@@ -51,192 +96,145 @@ export default function FreelanceProfileSetup() {
     setUserFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Gestion des changements dans le formulaire freelance
+  // Gestion des changements dans le formulaire demandeur d'emploi
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  
-
-  // Gestion de l’upload d’image projet
-  const handleProjectImageUpload = async (e) => {
+  // Gestion de l'upload du CV
+  const handleCvUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
+    
+    // Vérifier le type de fichier
+    const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+    if (!allowedTypes.includes(file.type)) {
+      setError('Seuls les fichiers PDF et Word sont acceptés pour le CV.');
+      return;
+    }
+
     const formDataFile = new FormData();
-    formDataFile.append('avatar', file);
+    formDataFile.append('cv', file);
     const apiUrl = process.env.NODE_ENV === 'production'
-      ? process.env.REACT_APP_API_URL || 'https://back-connectarchi.onrender.com'
-      : 'http://localhost:5000';  // URL en développement local
-    const res = await fetch(`${apiUrl}/api/upload/avatar`, {
-      method: 'POST',
-      body: formDataFile,
-    });
-    const data = await res.json();
-    if (data.url) {
-      setProject((prev) => ({ ...prev, image: data.url }));
-    }
-  };
-
-  const handleAddPortfolioItem = () => {
-    if (portfolioType === 'link' && project.url.trim() !== '') {
-      setFormData((prev) => ({
-        ...prev,
-        portfolio: [...prev.portfolio, { url: project.url }]
-      }));
-    } else if (portfolioType === 'project' && project.title.trim() !== '') {
-      setFormData((prev) => ({
-        ...prev,
-        portfolio: [...prev.portfolio, {
-          title: project.title,
-          description: project.description,
-          image: project.image
-        }]
-      }));
-    }
-    setProject({ title: '', description: '', image: '', url: '' });
-  };
-
-  const handleRemovePortfolioItem = (index) => {
-    setFormData((prev) => ({
-      ...prev,
-      portfolio: prev.portfolio.filter((_, i) => i !== index)
-    }));
-  };
-
-  
-
-  // Gestion de la soumission combinée des formulaires utilisateur et freelance
-  const handleSubmit = async (e) => {
-  e.preventDefault();
-  setLoading(true);
-  setError('');
-
-  const apiUrl = process.env.NODE_ENV === 'production'
     ? process.env.REACT_APP_API_URL || 'https://back-connectarchi.onrender.com'
-    : 'http://localhost:5000';  // URL en développement local
+    : 'http://localhost:5000';
+    
+    try {
+      const res = await fetch(`${apiUrl}/api/upload/cv`, {
+        method: 'POST',
+        body: formDataFile,
+      });
+      const data = await res.json();
+      if (data.url) {
+        setFormData((prev) => ({ ...prev, cv: `${backendUrl}${data.url}` }));
+        setError('');
+      }
+    } catch (err) {
+      setError('Erreur lors de l\'upload du CV.');
+    }
+  };
+
+  // Gestion de la soumission combinée des formulaires
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+
+    if (!isPhoneVerified) {
+      setError('Veuillez vérifier votre numéro de téléphone avant de continuer.');
+      setLoading(false);
+      return;
+    }
+
+    const apiUrl = process.env.NODE_ENV === 'production'
+    ? process.env.REACT_APP_API_URL || 'https://back-connectarchi.onrender.com'
+    : 'http://localhost:5000';
 
     try {
-        
+      console.log('Données envoyées :', userFormData);
 
-        // Enregistrement de l'utilisateur
-
-        // --- Vérification API entreprise pour freelance via SIREN uniquement
-        const siret = formData.siret;
-        const sirenFromSiret = siret.substring(0, 9);
-
-        const searchResponse = await fetch(`https://recherche-entreprises.api.gouv.fr/search?q=${sirenFromSiret}`);
-        const searchData = await searchResponse.json();
-        const matches = searchData.results || [];
-
-        const sirenMatch = matches.some(company => company.siren === sirenFromSiret);
-        if (!sirenMatch) {
-          setError("Le SIREN fourni est introuvable dans la base des entreprises.");
-          setLoading(false);
-          return;
-        }
-
-        const userResponse = await fetch(`${apiUrl}/api/users`, {
+      // Enregistrement de l'utilisateur
+      const userResponse = await fetch(`${apiUrl}/api/users`, {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json'
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify(userFormData)
-        });
+      });
 
-        if (!userResponse.ok) {
+      if (!userResponse.ok) {
         const errorData = await userResponse.json();
         console.error('Erreur backend :', errorData);
         throw new Error(errorData.error || 'Erreur lors de la création du compte utilisateur');
-        }
+      }
 
-        // Récupère les données utilisateur, y compris le token
-        const userData = await userResponse.json();
+      // Récupère les données utilisateur, y compris le token
+      const userData = await userResponse.json();
 
-        // Connexion automatique (si le backend ne renvoie pas déjà le token)
-        let token = userData.token;
-        let userId = userData.id || userData.user?.id;
+      // Connexion automatique (si le backend ne renvoie pas déjà le token)
+      let token = userData.token;
+      let userId = userData.id || userData.user?.id;
 
-        if (!token) {
-          // Si pas de token, on fait un login
-          const loginResponse = await fetch(`${apiUrl}/api/login`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              email: userFormData.email,
-              password: userFormData.password,
-            }),
-          });
-          const loginData = await loginResponse.json();
-          if (!loginResponse.ok) throw new Error(loginData.error || 'Erreur lors de la connexion');
-          token = loginData.token;
-          userId = loginData.user.id;
-        }
-
-        // Stocker les informations d'authentification
-        setAuthData({
-            token: token,
-            user: {
-                id: userId,
-                username: userFormData.username,
-                email: userFormData.email,
-                role: 'freelance'
-            }
+      if (!token) {
+        // Si pas de token, on fait un login
+        const loginResponse = await fetch(`${apiUrl}/api/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: userFormData.email,
+            password: userFormData.password,
+          }),
         });
+        const loginData = await loginResponse.json();
+        if (!loginResponse.ok) throw new Error(loginData.error || 'Erreur lors de la connexion');
+        token = loginData.token;
+        userId = loginData.user.id;
+      }
 
-        // Enregistrement du profil freelance
-        const freelanceResponse = await fetch(`${apiUrl}/api/freelances`, {
+      // Stocker les informations d'authentification
+      setAuthData({
+        token: token,
+        user: {
+          id: userId,
+          username: userFormData.username,
+          email: userFormData.email,
+          role: 'jobseeker'
+        }
+      });
+
+      // Enregistrement du profil demandeur d'emploi
+      const jobseekerResponse = await fetch(`${apiUrl}/api/jobseekers`, {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}` // Utilise le token d'authentification
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}` // Utilise le token d'authentification
         },
         body: JSON.stringify({
           ...formData,
-          hourlyRate: Number(formData.hourlyRate),
+          expectedSalary: Number(formData.expectedSalary),
           experienceYears: Number(formData.experienceYears),
-          user_id: userId, // Associe le profil freelance à l'utilisateur créé
-          siret: formData.siret
+          user_id: userId // Associe le profil à l'utilisateur créé
         })
-        });
+      });
 
-        if (!freelanceResponse.ok) {
-        throw new Error('Erreur lors de la sauvegarde du profil freelance');
-        }
+      if (!jobseekerResponse.ok) {
+        throw new Error('Erreur lors de la sauvegarde du profil demandeur d\'emploi');
+      }
 
-        const freelanceData = await freelanceResponse.json();
-        const freelanceId = freelanceData.id || freelanceData.freelance?.id;
-
-        for (const item of formData.portfolio) {
-          await fetch(`${apiUrl}/api/portfolio`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${token}` // si besoin d'auth
-            },
-            body: JSON.stringify({
-              freelance_id: freelanceId, // récupéré après création du profil freelance
-              title: item.title || null,
-              description: item.description || null,
-              image: item.image || null,
-              url: item.url || null
-            })
-          });
-        }
-
-        
-        navigate('/profile'); // Redirige vers la page de profil
+      
+      navigate('/profile'); // Redirige vers la page de profil
     } catch (err) {
-        console.error('Erreur :', err);
-        setError(err.message || 'Une erreur est survenue. Veuillez réessayer.');
+      console.error('Erreur :', err);
+      setError(err.message || 'Une erreur est survenue. Veuillez réessayer.');
     } finally {
-        setLoading(false);
+      setLoading(false);
     }
-    };
+  };
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold text-gray-900 mb-8">Créer un compte utilisateur et compléter votre profil freelance</h1>
+      <h1 className="text-3xl font-bold text-gray-900 mb-8">Créer un compte OpenToWork</h1>
 
       {error && <p className="text-red-500 mb-4">{error}</p>}
 
@@ -255,7 +253,7 @@ export default function FreelanceProfileSetup() {
                 value={userFormData.username}
                 onChange={handleUserChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                placeholder="ex: johndoe"
+                placeholder="ex: Jean Dupont"
                 pattern="^[A-Z][a-z]+(?:[-\s][A-Z][a-z]+)+$"
                 required
               />
@@ -271,7 +269,7 @@ export default function FreelanceProfileSetup() {
                 value={userFormData.email}
                 onChange={handleUserChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                placeholder="ex: johndoe@example.com"
+                placeholder="ex: jean.dupont@example.com"
                 pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
                 required
               />
@@ -293,12 +291,58 @@ export default function FreelanceProfileSetup() {
                 required
               />
             </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Téléphone
+              </label>
+              <input
+                type="tel"
+                name="phone"
+                value={userFormData.phone}
+                onChange={handleUserChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                placeholder="ex: +33612345678"
+                required
+              />
+
+              {!codeSent ? (
+                <button
+                  type="button"
+                  onClick={sendVerificationCode}
+                  className="mt-2 text-sm text-indigo-600 underline"
+                >
+                  Envoyer le code de vérification
+                </button>
+              ) : !isPhoneVerified ? (
+                <div className="mt-2 space-y-2">
+                  <input
+                    type="text"
+                    placeholder="Code reçu par SMS"
+                    value={verificationCode}
+                    onChange={(e) => setVerificationCode(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  />
+                  <button
+                    type="button"
+                    onClick={verifyCode}
+                    className="text-sm text-indigo-600 underline"
+                  >
+                    Vérifier le code
+                  </button>
+                </div>
+              ) : (
+                <p className="text-green-600 text-sm mt-2">✅ Téléphone vérifié</p>
+              )}
+            </div>
           </div>
         </div>
 
-        {/* Formulaire freelance */}
+        {/* Formulaire demandeur d'emploi */}
         <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">Profil freelance</h2>
+          <h2 className="text-xl font-bold text-gray-900 mb-4">Profil OpenToWork</h2>
+          
+          {/* Avatar */}
           <div className="mb-8">
             <div className="flex items-center justify-center">
               <div className="relative">
@@ -323,8 +367,8 @@ export default function FreelanceProfileSetup() {
                     const formDataFile = new FormData();
                     formDataFile.append('avatar', file);
                     const apiUrl = process.env.NODE_ENV === 'production'
-                      ? process.env.REACT_APP_API_URL || 'https://back-connectarchi.onrender.com'
-                      : 'http://localhost:5000';
+                    ? process.env.REACT_APP_API_URL || 'https://back-connectarchi.onrender.com'
+                    : 'http://localhost:5000';
                     const res = await fetch(`${apiUrl}/api/upload/avatar`, {
                       method: 'POST',
                       body: formDataFile,
@@ -343,7 +387,7 @@ export default function FreelanceProfileSetup() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Titre professionnel
+                Poste recherché
               </label>
               <input
                 type="text"
@@ -351,8 +395,8 @@ export default function FreelanceProfileSetup() {
                 value={formData.title}
                 onChange={handleChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                placeholder="ex: Architecte d'intérieur"
-                pattern="^[A-Za-zÀ-ÿ'’\- ]{2,100}$"
+                placeholder="ex: Architecte junior"
+                pattern="^[A-Za-zÀ-ÿ''\- ]{2,100}$"
                 required
               />
             </div>
@@ -367,8 +411,8 @@ export default function FreelanceProfileSetup() {
                 value={formData.specialization}
                 onChange={handleChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                placeholder="ex: Design résidentiel"
-                pattern="^[A-Za-zÀ-ÿ'’\- ]{2,100}$"
+                placeholder="ex: Architecture résidentielle"
+                pattern="^[A-Za-zÀ-ÿ''\- ]{2,100}$"
                 required
               />
             </div>
@@ -403,22 +447,22 @@ export default function FreelanceProfileSetup() {
                 onChange={handleChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-500"
                 placeholder="ex: Paris"
-                pattern="^[A-Za-zÀ-ÿ'’\- ]{2,100}$"
+                pattern="^[A-Za-zÀ-ÿ''\- ]{2,100}$"
                 required
               />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Tarif horaire (€)
+                Salaire attendu (€/an)
               </label>
               <input
                 type="number"
-                name="hourlyRate"
-                value={formData.hourlyRate}
+                name="expectedSalary"
+                value={formData.expectedSalary}
                 onChange={handleChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                placeholder="ex: 85"
+                placeholder="ex: 45000"
                 required
               />
             </div>
@@ -433,30 +477,16 @@ export default function FreelanceProfileSetup() {
                 onChange={handleChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-500"
               >
-                <option value="Disponible">Disponible</option>
-                <option value="Indisponible">Indisponible</option>
+                <option value="Disponible immédiatement">Disponible immédiatement</option>
+                <option value="Disponible sous 1 mois">Disponible sous 1 mois</option>
+                <option value="Disponible sous 3 mois">Disponible sous 3 mois</option>
+                <option value="En poste, ouvert aux opportunités">En poste, ouvert aux opportunités</option>
               </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                SIRET
-              </label>
-              <input
-                type="text"
-                name="siret"
-                value={formData.siret}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                placeholder="ex: 12345678901234"
-                pattern="^\d{14}$"
-                title="Le numéro SIRET doit contenir 14 chiffres."
-              />
             </div>
 
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Description
+                Description / Objectif professionnel
               </label>
               <textarea
                 name="description"
@@ -464,8 +494,7 @@ export default function FreelanceProfileSetup() {
                 onChange={handleChange}
                 rows={4}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                placeholder="Décrivez votre expérience et vos domaines d'expertise..."
-                pattern="^[A-Za-zÀ-ÿ'’\- ]{2,100}$"
+                placeholder="Décrivez votre parcours et vos objectifs professionnels..."
                 required
               />
             </div>
@@ -480,100 +509,47 @@ export default function FreelanceProfileSetup() {
                 value={formData.skills}
                 onChange={handleChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                placeholder="ex: AutoCAD, Revit, Design durable (séparés par des virgules)"
+                placeholder="ex: AutoCAD, Revit, Gestion de projet (séparés par des virgules)"
                 required
               />
             </div>
           </div>
 
-          {/* Portfolio Section */}
+          {/* CV Upload Section */}
           <div className="mt-6">
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Portfolio
+              CV (PDF ou Word)
             </label>
-            <div className="flex space-x-4 mb-4">
-              <button
-                type="button"
-                className={`px-4 py-2 rounded-md ${portfolioType === 'link' ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-700'}`}
-                onClick={() => setPortfolioType('link')}
-              >
-                Lien
-              </button>
-              <button
-                type="button"
-                className={`px-4 py-2 rounded-md ${portfolioType === 'project' ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-700'}`}
-                onClick={() => setPortfolioType('project')}
-              >
-                Projet
-              </button>
-            </div>
-            {portfolioType === 'link' ? (
-              <input
-                type="text"
-                value={project.url}
-                onChange={e => setProject({ ...project, url: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                placeholder="Lien du projet"
-              />
-            ) : (
-              <div className="space-y-2">
-                <input
-                  type="text"
-                  value={project.title}
-                  onChange={e => setProject({ ...project, title: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                  placeholder="Titre du projet"
-                />
-                <textarea
-                  value={project.description}
-                  onChange={e => setProject({ ...project, description: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                  placeholder="Description du projet"
-                />
+            <div className="flex items-center space-x-4">
+              <div className="flex-1">
                 <input
                   type="file"
-                  accept="image/*"
-                  onChange={handleProjectImageUpload}
-                  className="w-full text-sm text-gray-500"
+                  accept=".pdf,.doc,.docx"
+                  onChange={handleCvUpload}
+                  className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
                 />
-                {project.image && (
-                  <img src={project.image} alt="Aperçu" className="w-32 h-32 object-cover mt-2" />
-                )}
               </div>
-            )}
-            <button
-              type="button"
-              onClick={handleAddPortfolioItem}
-              className="mt-2 px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
-            >
-              Ajouter
-            </button>
-            <ul className="mt-4 space-y-2">
-              {formData.portfolio.map((item, index) => (
-                <li key={index} className="flex items-center justify-between bg-gray-100 px-4 py-2 rounded-md">
-                  {item.url ? (
-                    <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-indigo-600 underline break-all">{item.url}</a>
-                  ) : (
-                    <div>
-                      <b>{item.title}</b>
-                      <div>{item.description}</div>
-                      {item.image && <img src={`${backendUrl}${item.image}`} alt={item.title} className="w-16 h-16 object-cover mt-1" />}
-                    </div>
-                  )}
-                  <button
-                    type="button"
-                    onClick={() => handleRemovePortfolioItem(index)}
-                    className="text-red-500 hover:text-red-700 ml-4"
+              {formData.cv && (
+                <div className="flex items-center text-green-600">
+                  <FileText className="h-5 w-5 mr-2" />
+                  <a
+                    href={formData.cv}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm underline"
                   >
-                    Supprimer
-                  </button>
-                </li>
-              ))}
-            </ul>
+                    Voir le CV
+                  </a>
+                </div>
+              )}
+            </div>
+            <p className="text-xs text-gray-500 mt-1">
+              Formats acceptés : PDF, DOC, DOCX (max 5MB)
+            </p>
           </div>
         </div>
 
-        {/* Section Politique de confidentialité */}
+         {/* Section Politique de confidentialité */}
         <div className="bg-white rounded-lg shadow-md p-6">
           <div className="flex items-start">
             <input

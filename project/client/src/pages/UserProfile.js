@@ -2,22 +2,18 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
-const backendUrl = process.env.REACT_APP_BACKEND_URL || 'https://back-connectarchi.onrender.com';
-
 export default function UserProfile() {
   const navigate = useNavigate();
   const { user, token } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [freelancerData, setFreelancerData] = useState(null);
   const [companyData, setCompanyData] = useState(null);
+  const [jobseekerData, setJobseekerData] = useState(null); // Nouveau state
   const [applications, setApplications] = useState([]);
   const [conversations, setConversations] = useState([]);
-  const [portfolioList, setPortfolioList] = useState([]);
-  const [showPortfolioForm, setShowPortfolioForm] = useState(false);
-  const [newPortfolio, setNewPortfolio] = useState({ title: '', description: '', url: '', image: '' });
-  const [portfolioError, setPortfolioError] = useState('');
   const [activeTab, setActiveTab] = useState('profile');
   const [formData, setFormData] = useState({
+    // Champs freelance
     title: '',
     specialization: '',
     location: '',
@@ -28,6 +24,7 @@ export default function UserProfile() {
     experienceYears: '0',
     avatar: '',
     portfolio: [],
+    // Champs entreprise
     name: '',
     siret: '',
     vatNumber: '',
@@ -36,13 +33,14 @@ export default function UserProfile() {
     address: '',
     website: '',
     logo: '',
+    // Champs jobseeker
+    expectedSalary: '',
+    cv: '',
   });
 
   const apiUrl = process.env.NODE_ENV === 'production'
-      ? process.env.REACT_APP_API_URL || 'https://back-connectarchi.onrender.com'
-      : 'http://localhost:5000';  // URL en développement local
-
-
+    ? process.env.REACT_APP_API_URL || 'https://back-connectarchi.onrender.com'
+    : 'http://localhost:5000';
 
   useEffect(() => {
     if (!user || !token) {
@@ -60,6 +58,7 @@ export default function UserProfile() {
         .then(async (res) => {
           if (!res.ok) throw new Error('Erreur API');
           const data = await res.json();
+          console.log('Réponse API freelance:', data);
           return data;
         })
         .then((freelancer) => {
@@ -75,23 +74,25 @@ export default function UserProfile() {
             title: freelancer.title || '',
             specialization: freelancer.specialization || '',
             location: freelancer.location || '',
-            hourly_rate: freelancer.hourly_rate?.toString() || '',
+            hourlyRate: freelancer.hourlyRate?.toString() || '',
             description: freelancer.description || '',
             skills: skillsArray.join(', '),
             availability: freelancer.availability || 'Disponible',
-            experience_years: freelancer.experience_years?.toString() || '0',
+            experienceYears: freelancer.experienceYears?.toString() || '0',
             avatar: freelancer.avatar || '',
             portfolio: Array.isArray(freelancer.portfolio) ? [...freelancer.portfolio] : [],
           }));
         })
         .catch((err) => console.error('Erreur lors du chargement des données freelance :', err));
-    } else if (user.role === 'entreprise') {
+    } 
+    else if (user.role === 'entreprise') {
       fetch(`${apiUrl}/api/companies/by-user/${user.id}`, {
         headers: { Authorization: `Bearer ${token}` },
       })
         .then(async (res) => {
           if (!res.ok) throw new Error('Erreur API');
           const data = await res.json();
+          console.log('Réponse API entreprise:', data);
           return data;
         })
         .then((company) => {
@@ -117,6 +118,41 @@ export default function UserProfile() {
         })
         .catch((err) => console.error('Erreur lors du chargement des données entreprise :', err));
     }
+    else if (user.role === 'jobseeker') {
+      // Nouveau: récupération des données jobseeker
+      fetch(`${apiUrl}/api/jobseekers/by-user/${user.id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+        .then(async (res) => {
+          if (!res.ok) throw new Error('Erreur API');
+          const data = await res.json();
+          console.log('Réponse API jobseeker:', data);
+          return data;
+        })
+        .then((jobseeker) => {
+          const skillsArray = Array.isArray(jobseeker.skills)
+            ? jobseeker.skills
+            : (typeof jobseeker.skills === 'string' ? jobseeker.skills.split(',').map(s => s.trim()) : []);
+          setJobseekerData({
+            ...jobseeker,
+            skills: skillsArray,
+          });
+          setFormData((prev) => ({
+            ...prev,
+            title: jobseeker.title || '',
+            specialization: jobseeker.specialization || '',
+            location: jobseeker.location || '',
+            expectedSalary: jobseeker.expected_salary?.toString() || '',
+            description: jobseeker.description || '',
+            skills: skillsArray.join(', '),
+            availability: jobseeker.availability || 'Disponible',
+            experienceYears: jobseeker.experience_years?.toString() || '0',
+            avatar: jobseeker.avatar || '',
+            cv: jobseeker.cv || '',
+          }));
+        })
+        .catch((err) => console.error('Erreur lors du chargement des données jobseeker :', err));
+    }
 
     // Ce fetch est exécuté pour TOUS les utilisateurs connectés
     fetch(`${apiUrl}/api/conversations/${user.id}`, {
@@ -132,14 +168,15 @@ export default function UserProfile() {
     e.preventDefault();
     if (user?.role === 'freelance' && freelancerData) {
       const updatedFreelancer = {
+        ...freelancerData,
         title: formData.title,
         specialization: formData.specialization,
         location: formData.location,
-        hourly_rate: Number(formData.hourlyRate),
+        hourlyRate: Number(formData.hourlyRate),
         description: formData.description,
         skills: formData.skills.split(',').map((s) => s.trim()),
         availability: formData.availability,
-        experience_years: Number(formData.experienceYears),
+        experienceYears: Number(formData.experienceYears),
         avatar: formData.avatar,
         portfolio: formData.portfolio,
       };
@@ -158,7 +195,8 @@ export default function UserProfile() {
           setIsEditing(false);
         })
         .catch((err) => console.error('Erreur lors de la mise à jour des données freelance :', err));
-    } else if (user?.role === 'entreprise' && companyData) {
+    } 
+    else if (user?.role === 'entreprise' && companyData) {
       const updatedCompany = {
         ...companyData,
         name: formData.name,
@@ -187,23 +225,168 @@ export default function UserProfile() {
         })
         .catch((err) => console.error('Erreur lors de la mise à jour des données entreprise :', err));
     }
-  };
+    else if (user?.role === 'jobseeker' && jobseekerData) {
+      // Nouveau: mise à jour des données jobseeker
+      const updatedJobseeker = {
+        ...jobseekerData,
+        title: formData.title,
+        specialization: formData.specialization,
+        location: formData.location,
+        expected_salary: Number(formData.expectedSalary),
+        description: formData.description,
+        skills: formData.skills.split(',').map((s) => s.trim()),
+        availability: formData.availability,
+        experience_years: Number(formData.experienceYears),
+        avatar: formData.avatar,
+        cv: formData.cv,
+      };
 
-  useEffect(() => {
-    if (user?.role === 'freelance' && freelancerData?.id) {
-      fetch(`${apiUrl}/api/portfolio/by-freelance/${freelancerData.id}`, {
-        headers: { Authorization: `Bearer ${token}` },
+      fetch(`${apiUrl}/api/jobseekers/by-user/${user.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(updatedJobseeker),
       })
-        .then(res => res.json())
-        .then(data => setPortfolioList(Array.isArray(data) ? data : []))
-        .catch(() => setPortfolioList([]));
+        .then((res) => res.json())
+        .then(() => {
+          setJobseekerData(updatedJobseeker);
+          setIsEditing(false);
+        })
+        .catch((err) => console.error('Erreur lors de la mise à jour des données jobseeker :', err));
     }
-  }, [user, token, apiUrl, freelancerData]);
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
+
+  const renderJobseekerForm = () => (
+    <div className="bg-white rounded-lg shadow-md p-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Titre du poste recherché</label>
+          <input
+            type="text"
+            name="title"
+            value={formData.title}
+            onChange={handleChange}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-500"
+            placeholder="ex: Architecte d'intérieur"
+            required
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Spécialisation</label>
+          <input
+            type="text"
+            name="specialization"
+            value={formData.specialization}
+            onChange={handleChange}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-500"
+            placeholder="ex: Design résidentiel"
+            required
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Localisation</label>
+          <input
+            type="text"
+            name="location"
+            value={formData.location}
+            onChange={handleChange}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-500"
+            placeholder="ex: Paris"
+            required
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Salaire souhaité (€/an)</label>
+          <input
+            type="number"
+            name="expectedSalary"
+            value={formData.expectedSalary}
+            onChange={handleChange}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-500"
+            placeholder="ex: 45000"
+            required
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Années d'expérience</label>
+          <input
+            type="number"
+            name="experienceYears"
+            value={formData.experienceYears}
+            onChange={handleChange}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-500"
+            placeholder="ex: 5"
+            required
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Disponibilité</label>
+          <select
+            name="availability"
+            value={formData.availability}
+            onChange={handleChange}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-500"
+          >
+            <option value="Disponible">Disponible</option>
+            <option value="Indisponible">Indisponible</option>
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">CV (URL)</label>
+          <input
+            type="text"
+            name="cv"
+            value={formData.cv}
+            onChange={handleChange}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-500"
+            placeholder="ex: https://drive.google.com/..."
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Avatar (URL)</label>
+          <input
+            type="text"
+            name="avatar"
+            value={formData.avatar}
+            onChange={handleChange}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-500"
+            placeholder="ex: https://..."
+          />
+        </div>
+        <div className="md:col-span-2">
+          <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+          <textarea
+            name="description"
+            value={formData.description}
+            onChange={handleChange}
+            rows={4}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-500"
+            placeholder="Décrivez votre expérience et vos objectifs professionnels..."
+            required
+          />
+        </div>
+        <div className="md:col-span-2">
+          <label className="block text-sm font-medium text-gray-700 mb-1">Compétences</label>
+          <input
+            type="text"
+            name="skills"
+            value={formData.skills}
+            onChange={handleChange}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-500"
+            placeholder="ex: AutoCAD, Revit, Design durable (séparés par des virgules)"
+            required
+          />
+        </div>
+      </div>
+    </div>
+  );
 
   const renderFreelanceForm = () => (
     <div className="bg-white rounded-lg shadow-md p-6">
@@ -390,46 +573,15 @@ export default function UserProfile() {
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Logo</label>
-          <div className="flex items-center space-x-4">
-            <div className="w-20 h-20 bg-gray-100 rounded-lg flex items-center justify-center border-2 border-dashed border-gray-300 overflow-hidden">
-              {formData.logo ? (
-                <img
-                  src={formData.logo}
-                  alt="Logo entreprise"
-                  className="w-full h-full object-contain"
-                />
-              ) : (
-                <span className="text-gray-400">Aucun logo</span>
-              )}
-            </div>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={async (e) => {
-                const file = e.target.files[0];
-                if (!file) return;
-                const formDataFile = new FormData();
-                formDataFile.append('logo', file);
-                try {
-                  const apiUrl = process.env.NODE_ENV === 'production'
-                    ? process.env.REACT_APP_API_URL || 'https://back-connectarchi.onrender.com'
-                    : 'http://localhost:5000';
-                  const res = await fetch(`${apiUrl}/api/upload/logo`, {
-                    method: 'POST',
-                    body: formDataFile,
-                  });
-                  const data = await res.json();
-                  if (data.url) {
-                    setFormData(prev => ({ ...prev, logo: data.url }));
-                  }
-                } catch (error) {
-                  console.error('Erreur lors de l\'upload du logo:', error);
-                }
-              }}
-              className="w-full text-sm text-gray-500"
-            />
-          </div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Logo (URL)</label>
+          <input
+            type="text"
+            name="logo"
+            value={formData.logo}
+            onChange={handleChange}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-500"
+            placeholder="ex: https://..."
+          />
         </div>
         <div className="md:col-span-2">
           <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
@@ -446,12 +598,66 @@ export default function UserProfile() {
     </div>
   );
 
+  const renderJobseekerProfile = () =>
+    jobseekerData && (
+      <div className="bg-white rounded-lg shadow-md p-6">
+        <div className="mb-4 flex items-center">
+          <img
+            src={jobseekerData.avatar || '/uploads/default_jobseeker_avatar.png'}
+            alt={jobseekerData.username}
+            className="w-20 h-20 rounded-full mr-4 object-cover"
+          />
+          <div>
+            <h2 className="text-2xl font-bold">{jobseekerData.title}</h2>
+            <p className="text-gray-600">{jobseekerData.specialization}</p>
+            <span className="inline-block px-3 py-1 bg-purple-100 text-purple-700 text-xs font-semibold rounded-full mt-1">
+              OpenToWork
+            </span>
+          </div>
+        </div>
+        <div className="mb-2"><b>Localisation :</b> {jobseekerData.location}</div>
+        <div className="mb-2">
+          <b>Salaire souhaité :</b>{" "}
+          {jobseekerData.expected_salary !== undefined && jobseekerData.expected_salary !== null && jobseekerData.expected_salary !== ""
+            ? `${jobseekerData.expected_salary} € / an`
+            : "Non renseigné"}
+        </div>
+        <div className="mb-2">
+          <b>Années d'expérience :</b>{" "}
+          {jobseekerData.experience_years !== undefined && jobseekerData.experience_years !== null && jobseekerData.experience_years !== ""
+            ? jobseekerData.experience_years
+            : "Non renseigné"}
+        </div>
+        <div className="mb-2"><b>Disponibilité :</b> {jobseekerData.availability}</div>
+        <div className="mb-2"><b>Description :</b> {jobseekerData.description}</div>
+        <div className="mb-2">
+          <b>Compétences :</b>{" "}
+          {Array.isArray(jobseekerData.skills)
+            ? jobseekerData.skills.join(', ')
+            : jobseekerData.skills}
+        </div>
+        {jobseekerData.cv && (
+          <div className="mb-2">
+            <b>CV :</b>{" "}
+            <a
+              href={jobseekerData.cv}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-indigo-600 underline"
+            >
+              Voir le CV
+            </a>
+          </div>
+        )}
+      </div>
+    );
+
   const renderFreelanceProfile = () =>
     freelancerData && (
       <div className="bg-white rounded-lg shadow-md p-6">
         <div className="mb-4">
           <img
-            src={freelancerData.avatar ? `${backendUrl}${freelancerData.avatar}` : `${backendUrl}/uploads/default_freelance_avatar.png`}
+            src={freelancerData.avatar || '/uploads/default_freelance_avatar.png'}
             alt={freelancerData.name}
             className="w-20 h-20 rounded mr-4 object-cover"
           />
@@ -481,152 +687,37 @@ export default function UserProfile() {
         </div>
 
         {/* Portfolio */}
-        {user?.role === 'freelance' && user.id === freelancerData?.user_id && (
+        {Array.isArray(freelancerData.portfolio) && freelancerData.portfolio.length > 0 && (
           <div className="mt-6">
-            {/* Affichage des portfolios depuis la table portfolio */}
-            {Array.isArray(portfolioList) && portfolioList.length > 0 && (
-              <div className="mb-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-                {portfolioList.map((item, idx) => (
-                  <div
-                    key={item.id || idx}
-                    className="rounded-lg overflow-hidden shadow-md cursor-pointer hover:shadow-lg transition bg-white"
-                    onClick={() => item.id && navigate(`/portfolio/item/${item.id}`)}
-                    title={item.title || item.url || 'Projet'}
-                  >
-                    {item.image && (
-                      <img
-                        src={`${backendUrl}${item.image}`}
-                        alt={item.title || `Projet ${idx + 1}`}
-                        className="w-full h-48 object-cover"
-                      />
-                    )}
-                    <div className="p-4">
-                      {item.url && !item.image ? (
-                        <a
-                          href={item.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-indigo-600 underline break-all font-semibold mb-2"
-                        >
-                          {item.url}
-                        </a>
-                      ) : (
-                        <>
-                          <div className="font-bold text-lg mb-1">{item.title}</div>
-                          <div className="text-gray-600 text-sm mb-2">
-                            {item.description && item.description.length > 120
-                              ? item.description.slice(0, 120) + '…'
-                              : item.description}
-                          </div>
-                        </>
+            <h3 className="text-lg font-semibold mb-2">Portfolio</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {freelancerData.portfolio.map((item, idx) => (
+                <div key={idx} className="border rounded-lg p-4 bg-gray-50">
+                  {item.url ? (
+                    <a
+                      href={item.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-indigo-600 underline break-all"
+                    >
+                      {item.url}
+                    </a>
+                  ) : (
+                    <>
+                      <h4 className="font-semibold">{item.title}</h4>
+                      {item.image && (
+                        <img
+                          src={item.image}
+                          alt={item.title}
+                          className="w-full h-40 object-cover rounded-lg my-2"
+                        />
                       )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* Bouton d'ajout */}
-            <button
-              type="button"
-              className="mb-4 px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
-              onClick={() => setShowPortfolioForm(v => !v)}
-            >
-              {showPortfolioForm ? "Annuler" : "Ajouter un projet"}
-            </button>
-            {showPortfolioForm && (
-              <div className="border rounded-lg p-4 bg-white shadow mb-2">
-                <input
-                  type="text"
-                  value={newPortfolio.title}
-                  onChange={e => setNewPortfolio({ ...newPortfolio, title: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md mb-2"
-                  placeholder="Titre du projet"
-                />
-                <textarea
-                  value={newPortfolio.description}
-                  onChange={e => setNewPortfolio({ ...newPortfolio, description: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md mb-2"
-                  placeholder="Description du projet"
-                />
-                <input
-                  type="text"
-                  value={newPortfolio.url}
-                  onChange={e => setNewPortfolio({ ...newPortfolio, url: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md mb-2"
-                  placeholder="Lien du projet (optionnel)"
-                />
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={async (e) => {
-                    const file = e.target.files[0];
-                    if (!file) return;
-                    const formDataFile = new FormData();
-                    formDataFile.append('image', file);
-                    const apiUrl = process.env.NODE_ENV === 'production'
-                      ? process.env.REACT_APP_API_URL || 'https://back-connectarchi.onrender.com'
-                      : 'http://localhost:5000';  // URL en développement local
-                    const res = await fetch(`${apiUrl}/api/upload/portfolio`, {
-                      method: 'POST',
-                      body: formDataFile,
-                    });
-                    const data = await res.json();
-                    if (data.url) {
-                      setNewPortfolio(p => ({ ...p, image: data.url }));
-                    }
-                  }}
-                  className="w-full text-sm text-gray-500 mb-2"
-                />
-                {newPortfolio.image && (
-                  <img src={newPortfolio.image} alt="Aperçu" className="w-32 h-32 object-cover mb-2" />
-                )}
-                {portfolioError && <div className="text-red-500 mb-2">{portfolioError}</div>}
-                <button
-                  type="button"
-                  className="mt-2 px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
-                  onClick={async () => {
-                    if (!newPortfolio.title && !newPortfolio.url) {
-                      setPortfolioError("Titre ou lien requis");
-                      return;
-                    }
-                    setPortfolioError('');
-                    // Ajout dans la table portfolio
-                    try {
-                      const res = await fetch(`${apiUrl}/api/portfolio`, {
-                        method: 'POST',
-                        headers: {
-                          'Content-Type': 'application/json',
-                          Authorization: `Bearer ${token}`,
-                        },
-                        body: JSON.stringify({
-                          freelance_id: freelancerData.id,
-                          title: newPortfolio.title || null,
-                          description: newPortfolio.description || null,
-                          image: newPortfolio.image || null,
-                          url: newPortfolio.url || null,
-                        }),
-                      });
-                      if (res.ok) {
-                        // Recharge la liste des portfolios
-                        const updated = await fetch(`${apiUrl}/api/portfolio/by-freelance/${freelancerData.id}`, {
-                          headers: { Authorization: `Bearer ${token}` },
-                        }).then(r => r.json());
-                        setPortfolioList(Array.isArray(updated) ? updated : []);
-                        setNewPortfolio({ title: '', description: '', url: '', image: '' });
-                        setShowPortfolioForm(false);
-                      } else {
-                        setPortfolioError("Erreur lors de l'ajout du projet");
-                      }
-                    } catch (err) {
-                      setPortfolioError("Erreur lors de l'ajout du projet");
-                    }
-                  }}
-                >
-                  Ajouter
-                </button>
-              </div>
-            )}
+                      <p className="text-gray-600">{item.description}</p>
+                    </>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </div>
@@ -637,31 +728,96 @@ export default function UserProfile() {
       <div className="bg-white rounded-lg shadow-md p-6">
         <div className="mb-4 flex items-center">
           <img
-            src={companyData.logo ? `${backendUrl}${companyData.logo}` : `${backendUrl}/uploads/default_entreprise_avatar.png`}
+            src={companyData.logo || '/uploads/default_entreprise_avatar.png'}
             alt={companyData.name}
             className="w-20 h-20 rounded mr-4 object-cover"
           />
           <div>
             <h2 className="text-2xl font-bold">{companyData.name}</h2>
+            {companyData?.is_subscribed && (
+              <span className="ml-2 inline-block px-3 py-1 bg-green-100 text-green-700 text-xs font-semibold rounded-full">
+                ✅ Abonnement actif
+              </span>
+            )}
+            {companyData?.is_subscribed && companyData?.subscription_end && (
+              <p className="text-sm text-gray-600 mt-1">
+                Abonnement actif jusqu'au :{" "}
+                {new Date(companyData.subscription_end).toLocaleDateString("fr-FR")}
+              </p>
+            )}
             <p className="text-gray-600">{companyData.legalStatus}</p>
           </div>
         </div>
         <div className="mb-2"><b>SIRET :</b> {companyData.siret}</div>
-        <div className="mb-2">
-          <b>Code Postal :</b> {companyData.vatNumber || companyData.vat_number || "Non renseigné"}
-        </div>
-        <div className="mb-2">
-          <b>Ville :</b> {companyData.registrationCity || companyData.registration_city || "Non renseigné"}
-        </div>
+        <div className="mb-2"><b>TVA :</b> {companyData.vatNumber}</div>
+        <div className="mb-2"><b>Ville :</b> {companyData.registrationCity}</div>
         <div className="mb-2"><b>Adresse :</b> {companyData.address}</div>
         <div className="mb-2"><b>Site web :</b> {companyData.website && (
           <a href={companyData.website} target="_blank" rel="noopener noreferrer" className="text-indigo-600 underline">{companyData.website}</a>
         )}</div>
         <div className="mb-2"><b>Description :</b> {companyData.description}</div>
+        {companyData?.is_subscribed && (
+          <button
+            onClick={async () => {
+              const res = await fetch(`${apiUrl}/api/stripe/create-customer-portal-session`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({ customerId: companyData.stripe_customer_id }),
+              });
+              const data = await res.json();
+              if (data.url) {
+                window.location.href = data.url;
+              } else {
+                alert("Erreur lors de l'accès au portail Stripe");
+              }
+            }}
+            className="mt-4 px-6 py-2 bg-gray-100 border border-gray-300 rounded hover:bg-gray-200 text-sm"
+          >
+            Gérer mon abonnement
+          </button>
+        )}
+        {user?.role === 'entreprise' && !companyData?.is_subscribed && (
+          <div className="bg-white rounded-lg shadow-md p-6 mt-6">
+            <h3 className="text-xl font-semibold mb-2">Abonnement illimité</h3>
+            <p className="text-gray-700 mb-4">
+              Accédez à tous les profils freelance et publiez des appels d'offres sans limite.
+            </p>
+            <button
+              className="px-6 py-3 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
+              onClick={async () => {
+                const res = await fetch(`${apiUrl}/api/stripe/create-checkout-session`, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
+                  },
+                  body: JSON.stringify({ userId: user.id }),
+                });
+                const data = await res.json();
+                if (data.url) {
+                  window.location.href = data.url;
+                } else {
+                  alert("Erreur lors de la redirection vers Stripe");
+                }
+              }}
+            >
+              S'abonner maintenant
+            </button>
+          </div>
+        )}
+
       </div>
     );
 
-
+  // Pour debug
+  console.log('user:', user);
+  console.log('token:', token);
+  console.log('freelancerData:', freelancerData);
+  console.log('companyData:', companyData);
+  console.log('jobseekerData:', jobseekerData);
 
   const handleContactFreelance = async (freelancerId, jobId, jobTitle, freelancerName, companyName) => {
     try {
@@ -700,6 +856,7 @@ export default function UserProfile() {
 
   if (user?.role === 'entreprise' && Array.isArray(applications)) {
     applications.forEach(app => {
+      console.log('Candidature reçue :', app);
     });
   }
 
@@ -709,7 +866,7 @@ export default function UserProfile() {
     <div className="max-w-7xl mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold text-gray-900">Mon Profil</h1>
-        {(user?.role === 'freelance' || user?.role === 'entreprise') && !isEditing && activeTab === 'profile' && (
+        {(user?.role === 'freelance' || user?.role === 'entreprise' || user?.role === 'jobseeker') && !isEditing && activeTab === 'profile' && (
           <button
             onClick={() => setIsEditing(true)}
             className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
@@ -803,6 +960,29 @@ export default function UserProfile() {
           ) : (
             renderCompanyProfile()
           )
+        ) : user?.role === 'jobseeker' ? (
+          isEditing ? (
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {renderJobseekerForm()}
+              <div className="flex justify-end space-x-4">
+                <button
+                  type="button"
+                  onClick={() => setIsEditing(false)}
+                  className="px-6 py-3 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors"
+                >
+                  Annuler
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-3 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors"
+                >
+                  Enregistrer
+                </button>
+              </div>
+            </form>
+          ) : (
+            renderJobseekerProfile()
+          )
         ) : (
           <div className="bg-white rounded-lg shadow-md p-6">
             <div className="text-center">
@@ -826,9 +1006,9 @@ export default function UserProfile() {
                 <div>
                   <b>{app.freelancer_name}</b> a postulé à <b>{app.job_title}</b>
                 </div>
-                <div>Lettre de motivation : {app.coverLetter}</div>
-                <div>Taux proposé : {app.proposedRate} €/jour</div>
-                <div>Envoyée le : {new Date(app.createdAt).toLocaleDateString()}</div>
+                <div>Lettre de motivation : {app.coverLetter}</div>
+                <div>Taux proposé : {app.proposedRate} €/jour</div>
+                <div>Envoyée le : {new Date(app.createdAt).toLocaleDateString()}</div>
                 <button
                   className="mt-2 px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
                   onClick={() =>
@@ -862,13 +1042,19 @@ export default function UserProfile() {
                   <div className="flex-shrink-0">
                     {conv.other_role === 'entreprise' ? (
                       <img
-                        src={conv.other_avatar ? `${backendUrl}${conv.other_avatar}` : `${backendUrl}/uploads/default_entreprise_avatar.png`}
+                        src={conv.other_avatar || '/uploads/default_entreprise_avatar.png'}
                         alt={`Logo de ${conv.other_username}`}
                         className="w-16 h-16 object-contain rounded-lg" // Logo carré pour entreprise
                       />
+                    ) : conv.other_role === 'jobseeker' ? (
+                      <img
+                        src={conv.other_avatar || '/uploads/default_jobseeker_avatar.png'}
+                        alt={`Avatar de ${conv.other_username}`}
+                        className="w-12 h-12 object-cover rounded-full" // Avatar rond pour jobseeker
+                      />
                     ) : (
                       <img
-                        src={conv.other_avatar ? `${backendUrl}${conv.other_avatar}` : `${backendUrl}/uploads/default_freelance_avatar.png`}
+                        src={conv.other_avatar || '/uploads/default_freelance_avatar.png'}
                         alt={`Avatar de ${conv.other_username}`}
                         className="w-12 h-12 object-cover rounded-full" // Avatar rond pour freelance
                       />
@@ -880,6 +1066,8 @@ export default function UserProfile() {
                       <span className="ml-2 text-sm text-gray-500">
                         {conv.other_role === 'entreprise' ? (
                           <span className="text-blue-600">Entreprise</span>
+                        ) : conv.other_role === 'jobseeker' ? (
+                          <span className="text-purple-600">OpenToWork</span>
                         ) : (
                           <span className="text-green-600">Freelance</span>
                         )}

@@ -22,10 +22,10 @@ export default function Footer() {
                 <Link to="/about" className="text-gray-700 hover:text-indigo-600">À propos</Link>
               </li>
               <li>
-                <Link to="/freelancers" className="text-gray-700 hover:text-indigo-600">Freelances</Link>
+                <Link to="/freelancers" className="text-gray-700 hover:text-indigo-600">Collaborateurs</Link>
               </li>
               <li>
-                <Link to="/jobs" className="text-gray-700 hover:text-indigo-600">Appels d'offres</Link>
+                <Link to="/jobs" className="text-gray-700 hover:text-indigo-600">Offres de mission</Link>
               </li>
               <li>
                 <Link to="/profile" className="text-gray-700 hover:text-indigo-600">Mon Profil</Link>

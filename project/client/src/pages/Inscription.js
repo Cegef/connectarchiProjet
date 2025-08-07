@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Building2, UserSquare2 } from 'lucide-react';
+import { Building2, UserSquare2, Briefcase } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export default function ChooseType() {
@@ -9,7 +9,13 @@ export default function ChooseType() {
 
   const handleTypeSelection = (type) => {
     setUserType(type);
-    navigate(type === 'freelancer' ? '/freelance-setup' : '/company-setup');
+    if (type === 'freelancer') {
+      navigate('/freelance-setup');
+    } else if (type === 'company') {
+      navigate('/company-setup');
+    } else if (type === 'jobseeker') {
+      navigate('/jobseeker-setup');
+    }
   };
 
   return (
@@ -18,8 +24,9 @@ export default function ChooseType() {
         <h1 className="text-3xl font-bold text-center text-gray-900 mb-8">
           Choisissez votre profil
         </h1>
-        
-        <div className="grid md:grid-cols-2 gap-8">
+
+        <div className="grid md:grid-cols-3 gap-8">
+          {/* Freelance */}
           <button
             onClick={() => handleTypeSelection('freelancer')}
             className="bg-white p-8 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 text-left group"
@@ -36,6 +43,7 @@ export default function ChooseType() {
             </div>
           </button>
 
+          {/* Entreprise */}
           <button
             onClick={() => handleTypeSelection('company')}
             className="bg-white p-8 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 text-left group"
@@ -49,6 +57,23 @@ export default function ChooseType() {
             </p>
             <div className="mt-6 text-indigo-600 group-hover:text-indigo-700 font-medium">
               Continuer comme entreprise →
+            </div>
+          </button>
+
+          {/* Demandeur d'emploi */}
+          <button
+            onClick={() => handleTypeSelection('jobseeker')}
+            className="bg-white p-8 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 text-left group"
+          >
+            <div className="flex items-center mb-4">
+              <Briefcase className="h-8 w-8 text-indigo-600 group-hover:text-indigo-700" />
+              <h2 className="text-xl font-semibold ml-3">OpenToWork</h2>
+            </div>
+            <p className="text-gray-600">
+              Créez votre profil, explorez les opportunités d’emploi et connectez-vous avec des entreprises qui recrutent.
+            </p>
+            <div className="mt-6 text-indigo-600 group-hover:text-indigo-700 font-medium">
+              Continuer comme OpenToWork →
             </div>
           </button>
         </div>

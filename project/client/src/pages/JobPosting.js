@@ -73,7 +73,7 @@ export default function JobPostings() {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Appels d'offres</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Offres de missions</h1>
         </div>
         <p className="text-center text-indigo-700 font-semibold mb-8">
           Connectez-vous ou créez un compte pour découvrir et postuler aux meilleures opportunités du secteur !
@@ -130,7 +130,7 @@ export default function JobPostings() {
         </div>
         {jobPostings.length === 0 && (
           <div className="text-center py-12">
-            <p className="text-gray-600">Aucun appel d'offres disponible pour le moment.</p>
+            <p className="text-gray-600">Aucune offres de missions disponible pour le moment.</p>
           </div>
         )}
         <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
@@ -141,14 +141,14 @@ export default function JobPostings() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Appels d'offres</h1>
+        <h1 className="text-3xl font-bold text-gray-900">Offres de missions</h1>
         {user?.role === 'entreprise' && (
           <button
             onClick={() => setShowCreateModal(true)}
             className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors"
           >
             <Plus className="h-5 w-5 mr-2" />
-            Publier un appel d'offres
+            Publier une offre de mission
           </button>
         )}
       </div>
@@ -214,7 +214,7 @@ export default function JobPostings() {
       </div>
       {jobPostings.length === 0 && (
         <div className="text-center py-12">
-          <p className="text-gray-600">Aucun appel d'offres disponible pour le moment.</p>
+          <p className="text-gray-600">Aucune offre de mission disponible pour le moment.</p>
         </div>
       )}
       <CreateJobModal isOpen={showCreateModal} onClose={() => {setShowCreateModal(false); fetchData();}} />

@@ -85,7 +85,7 @@ export default function CreateJobModal({ isOpen, onClose }) {
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-6 max-w-xl w-full mx-4">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold text-gray-900">Publier un appel d'offres</h2>
+          <h2 className="text-xl font-bold text-gray-900">Publier une offre de mission</h2>
           <button
             onClick={onClose}
             className="text-gray-500 hover:text-gray-700"
@@ -95,7 +95,7 @@ export default function CreateJobModal({ isOpen, onClose }) {
         </div>
 
         {success ? (
-          <div className="text-green-600 text-center py-8 font-semibold">Appel d'offre publié !</div>
+          <div className="text-green-600 text-center py-8 font-semibold">Offre de mission publiée !</div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>

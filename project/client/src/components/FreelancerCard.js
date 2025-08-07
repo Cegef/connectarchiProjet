@@ -5,7 +5,8 @@ import { Link } from 'react-router-dom';
 const backendUrl = process.env.REACT_APP_BACKEND_URL || 'https://back-connectarchi.onrender.com';
 
 export default function FreelancerCard({ freelancer }) {
-  const name = freelancer.username || freelancer.name || 'Freelance';
+  const fullName = freelancer.username || freelancer.name || 'Freelance';
+  const firstName = fullName.split(' ')[0];
   const avatarPath = freelancer.avatar || '/uploads/default_freelance_avatar.png';
   const avatar = `${backendUrl}${avatarPath}`;
   const title = freelancer.title || '';
@@ -74,19 +75,19 @@ export default function FreelancerCard({ freelancer }) {
         <div className="relative">
           <img
             src={portfolioImage}
-            alt={name}
+            alt={firstName}
             className="w-full h-48 object-cover rounded-t-lg"
           />
           <img
             src={avatar}
-            alt={name}
+            alt={firstName}
             className="absolute -bottom-6 left-6 w-16 h-16 rounded-full border-4 border-white bg-white object-cover"
           />
         </div>
         <div className="p-6 pt-8">
           <div className="flex justify-between items-start">
             <div>
-              <h3 className="text-xl font-semibold text-gray-900">{name}</h3>
+              <h3 className="text-xl font-semibold text-gray-900">{firstName}</h3>
               <p className="text-gray-600">{title}</p>
             </div>
           </div>

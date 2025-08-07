@@ -29,6 +29,7 @@ export default function CompanyProfileSetup() {
     logo: '',
   });
 
+  const [acceptPrivacyPolicy, setAcceptPrivacyPolicy] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -389,11 +390,50 @@ export default function CompanyProfileSetup() {
           </div>
         </div>
 
+        {/* Section Politique de confidentialité */}
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <div className="flex items-start">
+            <input
+              type="checkbox"
+              id="privacyPolicy"
+              checked={acceptPrivacyPolicy}
+              onChange={(e) => setAcceptPrivacyPolicy(e.target.checked)}
+              className="mt-1 mr-3 h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+              required
+            />
+            <label htmlFor="privacyPolicy" className="text-sm text-gray-700">
+              J'accepte la{' '}
+              <a 
+                href="/politique-confidentialite" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-indigo-600 underline hover:text-indigo-800"
+              >
+                politique de confidentialité
+              </a>{' '}
+              et les{' '}
+              <a 
+                href="/conditions-utilisation" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-indigo-600 underline hover:text-indigo-800"
+              >
+                conditions d'utilisation
+              </a>
+              . Je consens au traitement de mes données personnelles conformément à ces politiques. *
+            </label>
+          </div>
+        </div>
+
         <div className="flex justify-center">
           <button
             type="submit"
-            className="px-6 py-3 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors"
-            disabled={loading}
+            className={`px-6 py-3 rounded-md transition-colors ${
+              acceptPrivacyPolicy && !loading
+                ? 'bg-indigo-600 text-white hover:bg-indigo-700'
+                : 'bg-gray-400 text-gray-200 cursor-not-allowed'
+            }`}
+            disabled={!acceptPrivacyPolicy || loading}
           >
             {loading ? 'Enregistrement...' : 'Créer le compte et enregistrer le profil'}
           </button>

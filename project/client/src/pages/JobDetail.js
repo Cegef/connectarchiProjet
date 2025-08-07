@@ -82,7 +82,7 @@ export default function JobDetail() {
         <div className="text-center">
           <h1 className="text-3xl font-bold text-gray-900 mb-4">Accès restreint</h1>
           <p className="text-gray-600 mb-6">
-            Vous devez être connecté pour consulter les détails des appels d'offres.
+            Vous devez être connecté pour consulter les détails des offres de mission.
           </p>
           <button
             onClick={() => setShowAuthModal(true)}

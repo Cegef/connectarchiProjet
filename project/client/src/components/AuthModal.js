@@ -93,7 +93,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
         </div>
         <button
           onClick={handleRedirectToRegister}
-          className="mt-2 text-sm text-indigo-600 hover:text-indigo-800"
+          className="mt-2 text-sm text-indigo-600 hover:underline"
         >
           Pas encore de compte ? S'inscrire
         </button>

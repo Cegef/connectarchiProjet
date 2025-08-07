@@ -30,7 +30,7 @@ export default function Navbar() {
             {/* Logo */}
             <div className="flex sm:space-x-8">
               <Link to="/" className="flex items-center">
-                <Building2 className="h-8 w-8 text-indigo-600" />
+                <img src="/connectarchi_logo_sans_texte.png" alt="Logo" className="h-8 w-auto" />
                 <span className="ml-2 text-xl font-bold text-gray-900">ConnectArchi</span>
               </Link>
             </div>
@@ -38,10 +38,13 @@ export default function Navbar() {
             {/* Desktop Menu */}
             <div className="hidden sm:flex sm:items-center sm:space-x-8">
               <Link to="/freelancers" className="text-gray-700 hover:text-indigo-600">
-                Freelances
+                Collaborateurs
               </Link>
               <Link to="/jobs" className="text-gray-700 hover:text-indigo-600">
-                Appels d'offres
+                Offres de mission
+              </Link>
+              <Link to="/tarification" className="text-gray-700 hover:text-indigo-600">
+                Tarification
               </Link>
               {user ? (
                 <div className="flex items-center space-x-4">
@@ -95,13 +98,13 @@ export default function Navbar() {
                 to="/freelancers"
                 className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-indigo-600"
               >
-                Freelances
+                Collaborateurs
               </Link>
               <Link
                 to="/jobs"
                 className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-indigo-600"
               >
-                Appels d'offres
+                Offres de mission
               </Link>
               {user ? (
                 <>
@@ -128,7 +131,7 @@ export default function Navbar() {
                   </button>
                   <button
                     onClick={handleRedirectToRegister}
-                    className="w-full text-left px-3 py-2 text-base font-medium text-white bg-indigo-600 hover:bg-indigo-700"
+                    className="text-left text-base font-medium text-white bg-indigo-600 hover:bg-indigo-700 px-4 py-2 border border-indigo-600 rounded-md hover:bg-indigo-50"
                   >
                     Inscription
                   </button>

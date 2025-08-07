@@ -63,7 +63,8 @@ export default function FreelancerProfile() {
   }
 
   // Gestion des champs (camelCase ou snake_case)
-  const name = freelancer.username || freelancer.name || 'Freelance';
+  const fullName = freelancer.username || freelancer.name || 'Freelance';
+  const firstName = fullName.split(' ')[0];
   const avatar = freelancer.avatar
     ? `${backendUrl}${freelancer.avatar}`
     : `${backendUrl}/uploads/default_freelance_avatar.png`;
@@ -119,11 +120,11 @@ export default function FreelancerProfile() {
             <div className="flex items-end">
               <img
                 src={avatar}
-                alt={name}
+                alt={firstName}
                 className="w-32 h-32 rounded-lg border-4 border-white shadow-md -mt-16 object-cover"
               />
               <div className="ml-6">
-                <h1 className="text-3xl font-bold text-gray-900">{name}</h1>
+                <h1 className="text-3xl font-bold text-gray-900">{firstName}</h1>
                 <p className="text-xl text-gray-600">{title} {specialization}</p>
               </div>
             </div>
@@ -273,7 +274,7 @@ export default function FreelancerProfile() {
           isOpen={showMessageModal}
           onClose={() => setShowMessageModal(false)}
           receiverId={freelancer.user_id || freelancer.userId}
-          senderName={name}
+          senderName={fullName}
           senderId={user?.id || ''}
         />
       )}

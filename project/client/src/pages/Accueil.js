@@ -4,6 +4,7 @@ import { ArrowRight, Users, Building, Briefcase, Award } from 'lucide-react';
 import SearchBar from '../components/SearchBar';
 import { Link } from 'react-router-dom';
 
+
 export default function Accueil() {
   const [showCookieBanner, setShowCookieBanner] = useState(false);
   const [cookieConsent, setCookieConsent] = useState(null);
@@ -62,7 +63,7 @@ export default function Accueil() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16">
         <div className="text-center">
           <h1 className="text-1xl sm:text-3xl font-bold text-gray-900 mb-6">
-            Trouvez le freelance idéal pour votre projet
+            Trouvez le collaborateur idéal pour votre projet
             
           </h1>
           
@@ -77,43 +78,76 @@ export default function Accueil() {
             <SearchBar />
           </div>
           <br></br>
-          <div className="grid md:grid-cols-3 gap-8 mb-16">
-            {[
-              {
-                title: 'Expertise Variée',
-                description: 'Des freelances spécialisés dans différents domaines',
-              },
-              {
-                title: 'Vous êtes une entreprise ?',
-                description: 'Inscrivez- vous et trouvez le freelance idéal pour votre projet en un clic.',
-                more: 'Zéro commission. Zéro frais. Liberté totale',
-                link: '/company-setup'
-              },
-              {
-                title: 'Vous êtes freelance ?',
-                description: 'Inscrivez- vous et accédez à des missions ciblées et répondez gratuitement aux appels d’offres.',
-                more:'Zéro commission. Zéro frais. Liberté totale',
-                link: '/freelance-setup'
-              },
-            ].map((feature, index) => {
-              const CardContent = (
-                <div className="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition">
-                  <h3 className="text-xl font-semibold text-gray-900 mb-3">
-                    {feature.title}
-                  </h3>
-                  <p className="text-gray-600">{feature.description}</p>
-                  {feature.more && <p className="text-gray-600 mt-2 font-bold">{feature.more}</p>}
-                </div>
-              );
+          <div className="flex justify-center">
+            <div className="grid md:grid-cols-3 gap-8 mb-16">
+              {[
+                {
+                  title: 'Vous êtes à la recherche d\'un emploi  "Go to work"',
+                  description: [
+                    'Déposez votre CV.',
+                    'Consultez les offres de mission.',
+                    'Recevez des alertes d\'emploi.',
+                    <strong key="bold1">Zéro commission, Liberté totale, Sans aucun engagement.</strong>
+                  ],
+                  more: ['Inscrivez-vous dès maintenant.'],
+                  link: '/jobseeker-setup'
+                },
+                {
+                  title: 'Vous êtes une entreprise ?',
+                  description: [
+                    'Consultez les profils disponibles pour votre projet.',
+                    'Publiez une offre de mission.',
+                    <strong key="bold1">Gratuité et sans engagement : Consultation de 10 profils et dépôt de 10 offres de mission.</strong>
+                  ],
+                  more: ['Inscrivez-vous dès maintenant.'],
+                  link: '/company-setup'
+                },
+                {
+                  title: 'Vous êtes freelance ?',
+                  description: [
+                    'Creez votre profil.',
+                    'Consultez les offres de mission.',
+                    <strong key="bold1">Zéro commission, Liberté totale, Sans aucun engagement.</strong>,
+                  ],
+                  more: ['Inscrivez-vous dès maintenant.'],
+                  link: '/freelance-setup'
+                },
+              ].map((feature, index) => {
+                const CardContent = (
+                  <div className="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition w-[380px] max-w-full">
+                    <h3 className="text-xl font-semibold text-gray-900 mb-3">
+                      {feature.title}
+                    </h3>
 
-              return feature.link ? (
-                <Link to={feature.link} key={index} className="block">
-                  {CardContent}
-                </Link>
-              ) : (
-                <div key={index}>{CardContent}</div>
-              );
-            })}
+                    {/* Description avec <br /> */}
+                    <p className="text-gray-600">
+                      {feature.description.map((line, i) => (
+                        <React.Fragment key={i}>
+                          {line}
+                          <br />
+                        </React.Fragment>
+                      ))}
+                    </p>
+
+                    {feature.more && (
+                      <p className="text-indigo-600 mt-2 font-bold">
+                        {feature.more}
+                      </p>
+                    )}
+                  </div>
+                );
+
+                return feature.link ? (
+                  <Link to={feature.link} key={index} className="flex justify-center">
+                    {CardContent}
+                  </Link>
+                ) : (
+                  <div key={index} className="flex justify-center">
+                    {CardContent}
+                  </div>
+                );
+              })}
+            </div>
           </div>
 
           <Link

@@ -37,6 +37,31 @@ const logoStorage = multer.diskStorage({
   }
 });
 
+const cvStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, path.join(__dirname, 'uploads/cv')); // dossier uploads/cv
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, 'cv-' + uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+const uploadCv = multer({
+  storage: cvStorage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB max
+  fileFilter: (req, file, cb) => {
+    const filetypes = /pdf|doc|docx/;
+    const mimetype = filetypes.test(file.mimetype);
+    const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+
+    if (mimetype && extname) {
+      return cb(null, true);
+    }
+    cb(new Error('Seuls les fichiers PDF et Word sont autorisés'));
+  }
+});
+
 const upload = multer({ storage });
 
 const uploadLogo = multer({ 
@@ -62,6 +87,10 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+app.get('/healthz', (req, res) => {
+  res.status(200).send('OK');
+});
+
 app.post('/api/upload/avatar', upload.single('avatar'), (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'Aucun fichier envoyé' });
   // Retourne l’URL publique de l’image
@@ -71,6 +100,13 @@ app.post('/api/upload/avatar', upload.single('avatar'), (req, res) => {
 // Pour servir les fichiers statiques
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+
+app.post('/api/upload/cv', uploadCv.single('cv'), (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ error: 'Aucun fichier fourni' });
+  }
+  res.json({ url: `/uploads/cv/${req.file.filename}` });
+});
 
 
 app.post('/api/upload/logo', uploadLogo.single('logo'), (req, res) => {
