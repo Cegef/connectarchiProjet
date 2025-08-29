@@ -56,6 +56,9 @@ export default function JobSeekerProfile() {
   const avatar = jobseeker.avatar
     ? `${backendUrl}${jobseeker.avatar}`
     : `${backendUrl}/uploads/default_jobseeker_avatar.png`;
+  const coverImage = jobseeker.coverImage
+    ? `${backendUrl}${jobseeker.coverImage}`
+    : `${backendUrl}/uploads/default_freelance_avatar.png`;
   const title = jobseeker.title || '';
   const location = jobseeker.location || '';
   const description = jobseeker.description || '';
@@ -104,7 +107,12 @@ export default function JobSeekerProfile() {
       </Link>
 
       <div className="bg-white rounded-lg shadow-md overflow-hidden">
-        <div className="relative h-64 bg-gradient-to-br from-blue-50 to-indigo-100">
+        <div className="relative h-64 bg-gray-200">
+          <img
+            src={avatar}
+            alt="Cover"
+            className="w-full h-full object-cover"
+          />
           <div className="absolute top-4 right-4">
             <span className="bg-green-600 text-white px-3 py-1 rounded-full text-sm font-medium">
               OpenToWork
@@ -116,7 +124,7 @@ export default function JobSeekerProfile() {
           <div className="flex flex-col md:flex-row md:items-end md:justify-between mt-8">
             <div className="flex items-end">
               <img
-                src={avatar}
+                src={coverImage}
                 alt={firstName}
                 className="w-32 h-32 rounded-lg border-4 border-white shadow-md -mt-16 object-cover"
               />

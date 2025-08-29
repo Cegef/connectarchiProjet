@@ -9,6 +9,8 @@ export default function JobSeekerCard({ jobseeker }) {
   const firstName = fullName.split(' ')[0];
   const avatarPath = jobseeker.avatar || '/uploads/default_jobseeker_avatar.png';
   const avatar = `${backendUrl}${avatarPath}`;
+  const coverImagePath = '/uploads/default_freelance_avatar.png';
+  const coverImage = `${backendUrl}${coverImagePath}`;
   const title = jobseeker.title || '';
   const location = jobseeker.location || '';
   const availability = jobseeker.availability || 'Disponible';
@@ -45,9 +47,13 @@ export default function JobSeekerCard({ jobseeker }) {
       <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
         {/* Image + Avatar */}
         <div className="relative">
-          <div className="w-full h-48 bg-gradient-to-br from-blue-50 to-indigo-100 rounded-t-lg" />
           <img
             src={avatar}
+            alt={firstName}
+            className="w-full h-48 object-cover rounded-t-lg"
+          />
+          <img
+            src={coverImage}
             alt={firstName}
             className="absolute -bottom-6 left-6 w-16 h-16 rounded-full border-4 border-white bg-white object-cover"
           />

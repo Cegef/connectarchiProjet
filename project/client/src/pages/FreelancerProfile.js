@@ -113,6 +113,11 @@ export default function FreelancerProfile() {
             alt="Cover"
             className="w-full h-full object-cover"
           />
+          <div className="absolute top-4 right-4">
+            <span className="bg-blue-600 text-white px-3 py-1 rounded-full text-sm font-medium">
+              Freelance
+            </span>
+          </div>
         </div>
 
         <div className="relative px-8 pb-8">
