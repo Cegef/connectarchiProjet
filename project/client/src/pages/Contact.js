@@ -2,7 +2,8 @@ import React, { useState } from "react";
 
 function Contact() {
   const [formData, setFormData] = useState({
-    name: "",
+    nom: "",
+    prenom: "",
     email: "",
     message: ""
   });
@@ -16,25 +17,35 @@ function Contact() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    alert("Message envoyé !");
+    alert("Votre message a bien été envoyé !");
     console.log(formData);
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
-      <form 
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 p-6">
+      <form
         onSubmit={handleSubmit}
-        className="bg-white p-8 rounded-xl shadow-md w-full max-w-md"
+        className="bg-white p-8 rounded-xl shadow-md w-full max-w-lg"
       >
         <h2 className="text-2xl font-bold mb-6 text-center">
-          Contactez-nous
+          Formulaire de contact
         </h2>
 
         <input
           type="text"
-          name="name"
-          placeholder="Votre nom"
-          value={formData.name}
+          name="nom"
+          placeholder="Nom"
+          value={formData.nom}
+          onChange={handleChange}
+          className="w-full p-3 mb-4 border rounded"
+          required
+        />
+
+        <input
+          type="text"
+          name="prenom"
+          placeholder="Prénom"
+          value={formData.prenom}
           onChange={handleChange}
           className="w-full p-3 mb-4 border rounded"
           required
@@ -43,7 +54,7 @@ function Contact() {
         <input
           type="email"
           name="email"
-          placeholder="Votre email"
+          placeholder="Email"
           value={formData.email}
           onChange={handleChange}
           className="w-full p-3 mb-4 border rounded"
@@ -56,7 +67,7 @@ function Contact() {
           value={formData.message}
           onChange={handleChange}
           className="w-full p-3 mb-4 border rounded"
-          rows="4"
+          rows="5"
           required
         />
 
