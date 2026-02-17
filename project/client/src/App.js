@@ -21,6 +21,7 @@ import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import Accueil from './pages/Accueil';
 import Footer from './components/Footer';
+import Contact from "./pages/Contact";
 
 function App() {
   return (
