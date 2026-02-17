@@ -46,6 +46,7 @@ function App() {
           <Route path="/portfolio/item/:id" element={<PortfolioItem />} />
           <Route path="/mot-de-passe-oublie" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/contact" element={<Contact />} />
           <Route path="/politique-confidentialite" element={<PolitiqueConfidentialite />} />
         </Routes>
         <Footer />
